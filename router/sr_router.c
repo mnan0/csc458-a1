@@ -34,7 +34,7 @@ void sr_init(struct sr_instance* sr)
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
     
     /*Need to set up if_list, sockfd, cache*/
-    printf("Print test");
+    printf("%s", sr->routing_table->interface);
     /* Add initialization code here! */
     
 
