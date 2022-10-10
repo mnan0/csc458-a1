@@ -37,8 +37,9 @@ void sr_init(struct sr_instance* sr)
     printf("%s", sr->routing_table->interface);
     /* Add initialization code here! */
     struct sr_rt* next_node = sr->routing_table;
+    char interface[sr_IFACE_NAMELEN];
     while (next_node != NULL){
-      char interface[sr_IFACE_NAMELEN] = next_node->interface;
+      strcpy(interface, next_node->interface);
       sr_add_interface(sr, interface);
       next_node = next_node->next;
     }
