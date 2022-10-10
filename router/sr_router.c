@@ -36,7 +36,12 @@ void sr_init(struct sr_instance* sr)
     /*Need to set up if_list, sockfd, cache*/
     printf("%s", sr->routing_table->interface);
     /* Add initialization code here! */
-    
+    struct sr_rt* next_node = sr->routing_table;
+    while (next_node != NULL){
+      char[sr_IFACE_NAMELEN] interface = next_node->interface;
+      sr_add_interface(sr, interface);
+      next_node = next_node->next;
+    }
 
 } /* -- sr_init -- */
 
