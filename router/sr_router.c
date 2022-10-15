@@ -48,7 +48,6 @@ void sr_init(struct sr_instance* sr)
       /*TODO: Need to call sr_arpcache_insert to find the mac address of each interface, as well as plug in destination*/
       next_node = next_node->next;
     }
-    printf("After while loop");
 } /* -- sr_init -- */
 
 /*---------------------------------------------------------------------
