@@ -43,7 +43,7 @@ void sr_init(struct sr_instance* sr)
       strcpy(interface, next_node->interface);
       sr_add_interface(sr, interface);
       dest = next_node->dest;
-      r_set_ether_ip(sr, dest.s_addr);
+      sr_set_ether_ip(sr, dest.s_addr);
 
       /*TODO: Need to call sr_arpcache_insert to find the mac address of each interface, as well as plug in destination*/
       next_node = next_node->next;
