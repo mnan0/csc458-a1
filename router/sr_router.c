@@ -38,14 +38,12 @@ void sr_init(struct sr_instance* sr)
     /* Add initialization code here! */
     struct sr_rt* next_node = sr->routing_table;
     char interface[sr_IFACE_NAMELEN];
-    struct in_addr dest;
+    struct in_addr* dest;
     while (next_node != NULL){
       strcpy(interface, next_node->interface);
       sr_add_interface(sr, interface);
       dest = next_node->dest;
-      printf("Before set_ether");
-      sr_set_ether_ip(sr, dest.s_addr);
-      printf("After set_ether");
+      sr_set_ether_ip(sr, dest->s_addr);
 
       /*TODO: Need to call sr_arpcache_insert to find the mac address of each interface, as well as plug in destination*/
       next_node = next_node->next;
