@@ -19,31 +19,31 @@
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
     struct sr_arpreq *curr_req = sr->cache.requests;
     while(curr_req != NULL){
-        handle_arprequest(curr_req);
+        handle_arprequest(sr, curr_req);
         curr_req = curr_req->next;
     }
 
 }
 
 void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
-    // if difftime(now, req->sent) > 1.0
-    //        if req->times_sent >= 5:
-    //            send icmp host unreachable to source addr of all pkts waiting
-    //              on this request
-    //            arpreq_destroy(req)
-    //        else:
-    //            send arp request
-    //            req->sent = now
-    //            req->times_sent++
+    /*if difftime(now, req->sent) > 1.0
+           if req->times_sent >= 5:
+               send icmp host unreachable to source addr of all pkts waiting
+                 on this request
+               arpreq_destroy(req)
+           else:
+               send arp request
+               req->sent = now
+               req->times_sent++*/
     time_t now;
     struct tm *mytime = localtime(&now); 
     if (difftime(mytime, req->sent) > 1.0){
         if (req->times_sent >= 5){
-            //Send icmp host
-            // /*Construct Ethernet Header*/
-            // struct sr_ethernet_hdr ethernet_hdr;
-            // ethernet_hdr.ether_dhost = req->ip;
-            // sr_arpcache_destroy(req);
+           /* Send icmp host
+            /*Construct Ethernet Header
+            struct sr_ethernet_hdr ethernet_hdr;
+            ethernet_hdr.ether_dhost = req->ip;
+            sr_arpcache_destroy(req);*/
         }
         else {
             /*Loop through all router interfaces and send an ARP request to each*/
@@ -81,7 +81,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             }
             
 
-            req->send = mytime;
+            req->sent = mytime;
             req->times_sent++;
         }
     }
