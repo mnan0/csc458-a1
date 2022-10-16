@@ -26,24 +26,69 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 }
 
 void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
-    /*if difftime(now, req->sent) > 1.0
-           if req->times_sent >= 5:
-               send icmp host unreachable to source addr of all pkts waiting
-                 on this request
-               arpreq_destroy(req)
-           else:
-               send arp request
-               req->sent = now
-               req->times_sent++*/
     time_t now;
     struct tm *mytime = localtime(&now); 
     if (difftime(mktime(mytime), req->sent) > 1.0){
         if (req->times_sent >= 5){
-           /* Send icmp host
-            Construct Ethernet Header
-            struct sr_ethernet_hdr ethernet_hdr;
-            ethernet_hdr.ether_dhost = req->ip;
-            sr_arpcache_destroy(req);*/
+            /*Loop through each packet in req and send an icmp type */
+            struct sr_packet* curr_packet = req->packets;
+            while (sr_packet != NULL){
+                /*TODO: Does it send multiple ICMP responses to the same host?*/
+                /* Set up ethernet header */
+                struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
+                struct sr_if* new_source = sr_get_interface(sr, curr_packet->iface);
+                if (new_source == 0){
+                    perror("Packet interface not recognized by routing table.");
+                }
+                /*Unpack packet buf to get dhost from ethernet frame*/
+                struct sr_ethernet_hdr* curr_packet_eth_hdr = (struct sr_ethernet_hdr*) curr_packet->buf;
+                struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
+
+
+
+                memcpy(ethernet_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
+                memcpy(ethernet_hdr->ether_shost, new_source->addr, sizeof(new_source->addr);
+                ethernet_hdr->ether_type = ethertype_ip;
+
+                /*Set up IP header*/
+                struct sr_ip_hdr ip_hdr = malloc(sizeof(struct sr_ip_hdr));
+                ip_hdr.ip_tos = 0;
+                ip_hdr.ip_len = sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
+                ip_hdr.ip_id = 0;
+                ip_hdr.ip_off = IP_DF; /* if this causes problems, try IP_RF*/
+                ip_hdr.ip_ttl = INIT_TTL;
+                ip_hdr.ip_p = ip_protocol_icmp;
+                ip_hdr.ip_sum = cksum(ip_hdr, ip_hdr.ip_hl);
+                memcpy(ip_hdr.ip_src, new_source->ip, sizeof(new_source->ip));
+                memcpy(ip_hdr.ip_dst, curr_packet_ip_hdr->ip_src, sizeof(curr_packet_ip_hdr->ip_src)); 
+
+                /*Set up ICMP header*/
+                struct sr_icmp_t3_hdr icmp_hdr = malloc(sizeof(struct sr_ip_sr_icmp_t3_hdrhdr));
+                icmp_hdr.icmp_type = 3;
+                icmp_hdr.icmp_code = 1;
+                icmp_hdr.icmp_sum = cksum(icmp_hdr, ip_hdr.ip_len - ip_hdr.ip_hl); 
+                icmp_hdr.unused = 0;
+                icmp_hdr.next_mtu = 1500;
+                icmp_hdr.data = (uint8_t*) curr_packet_ip_hdr;
+                
+                /*Construct buf and send packet*/
+                uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
+                memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
+                memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
+                memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_t3_hdr));
+
+                sr_send_packet(sr, buf, sizeof(buf), curr_packet->iface);
+
+                /* Free memory */
+                free(buf);
+                free(ethernet_hdr);
+                free(ip_hdr);
+                free(sr_icmp_hdr);
+
+
+                curr_packet = curr_packet->next;
+            }
+            sr_arpcache_destroy(req);
         }
         else {
             /*Loop through all router interfaces and send an ARP request to each*/
@@ -68,7 +113,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 memcpy(&(arp_hdr->ar_sip),&(curr_if->ip),sizeof(uint32_t));
                 memcpy(&(arp_hdr->ar_tip),&(req->ip),sizeof(uint32_t));
                 
-                uint8_t* buf = malloc(sizeof(*arp_hdr) + sizeof(*ethernet_hdr));
+                uint8_t* buf = malloc(sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));
                 memcpy(buf, ethernet_hdr, sizeof(*ethernet_hdr));
                 memcpy(buf + sizeof(*ethernet_hdr), arp_hdr, sizeof(*arp_hdr));
                 free(ethernet_hdr);

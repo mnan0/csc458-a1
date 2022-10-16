@@ -3,6 +3,7 @@
         "sr_rt.h": "c",
         "cstring": "c",
         "xmemory": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "stdlib.h": "c"
     }
 }

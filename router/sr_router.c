@@ -34,13 +34,14 @@ void sr_init(struct sr_instance* sr)
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
     
     printf("%s", sr->routing_table->interface);
-    /* Add initialization code here! */
+    
     struct sr_rt* next_node = sr->routing_table;
     uint8_t* empty_packet=NULL;
     while (next_node != NULL){
+      /* Note: necessary to queue at beginning? */
       struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), next_node->dest.s_addr, empty_packet, 0, next_node->interface);
-      free(req->packets);
       /*TODO: Figure out what to do with the req*/
+      /* Current theory: freeing occurs after ICMP or reply is received*/
       next_node = next_node->next;
     }
 } /* -- sr_init -- */
@@ -74,6 +75,10 @@ void sr_handlepacket(struct sr_instance* sr,
   printf("*** -> Received packet of length %d \n",len);
 
   /* fill in code here */
+
+  /* TODO: Convert from network byte order to host byte order */
+  /* TODO: Checksums! Use cksum in sr_utils.c to compare to buf's checksum. Remember to set checksum field to zero 
+  before passing the buf to cksum*/
 
 }/* end sr_ForwardPacket */
 
