@@ -50,25 +50,25 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 ethernet_hdr->ether_type = ethertype_ip;
 
                 /*Set up IP header*/
-                struct sr_ip_hdr ip_hdr = malloc(sizeof(struct sr_ip_hdr));
-                ip_hdr.ip_tos = 0;
-                ip_hdr.ip_len = sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
-                ip_hdr.ip_id = 0;
-                ip_hdr.ip_off = IP_DF; /* if this causes problems, try IP_RF*/
-                ip_hdr.ip_ttl = INIT_TTL;
-                ip_hdr.ip_p = ip_protocol_icmp;
-                ip_hdr.ip_sum = cksum(ip_hdr, ip_hdr.ip_hl);
-                memcpy(ip_hdr.ip_src, new_source->ip, sizeof(new_source->ip));
-                memcpy(ip_hdr.ip_dst, curr_packet_ip_hdr->ip_src, sizeof(curr_packet_ip_hdr->ip_src)); 
+                struct sr_ip_hdr* ip_hdr = malloc(sizeof(struct sr_ip_hdr));
+                ip_hdr->ip_tos = 0;
+                ip_hdr->ip_len = sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
+                ip_hdr->ip_id = 0;
+                ip_hdr->ip_off = IP_DF; /* if this causes problems, try IP_RF*/
+                ip_hdr->ip_ttl = INIT_TTL;
+                ip_hdr->ip_p = ip_protocol_icmp;
+                ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr.ip_hl);
+                memcpy(ip_hdr->ip_src, new_source->ip, sizeof(new_source->ip));
+                memcpy(ip_hdr->ip_dst, curr_packet_ip_hdr->ip_src, sizeof(curr_packet_ip_hdr->ip_src)); 
 
                 /*Set up ICMP header*/
-                struct sr_icmp_t3_hdr icmp_hdr = malloc(sizeof(struct sr_ip_sr_icmp_t3_hdrhdr));
-                icmp_hdr.icmp_type = 3;
-                icmp_hdr.icmp_code = 1;
-                icmp_hdr.icmp_sum = cksum(icmp_hdr, ip_hdr.ip_len - ip_hdr.ip_hl); 
-                icmp_hdr.unused = 0;
-                icmp_hdr.next_mtu = 1500;
-                icmp_hdr.data = (uint8_t*) curr_packet_ip_hdr;
+                struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_ip_sr_icmp_t3_hdr));
+                icmp_hdr->icmp_type = 3;
+                icmp_hdr->icmp_code = 1;
+                icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr.ip_len - ip_hdr.ip_hl); 
+                icmp_hdr->unused = 0;
+                icmp_hdr->next_mtu = 1500;
+                icmp_hdr->data = (uint8_t*) curr_packet_ip_hdr;
                 
                 /*Construct buf and send packet*/
                 uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
@@ -82,12 +82,12 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 free(buf);
                 free(ethernet_hdr);
                 free(ip_hdr);
-                free(sr_icmp_hdr);
+                free(icmp_hdr);
 
 
                 curr_packet = curr_packet->next;
             }
-            sr_arpreq_destroy(sr->cache,req);
+            sr_arpreq_destroy(&(sr->cache),req);
         }
         else {
             /*Loop through all router interfaces and send an ARP request to each*/
