@@ -32,9 +32,7 @@ void sr_init(struct sr_instance* sr)
     pthread_t thread;
 
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
-    
-    printf("%s", sr->routing_table->interface);
-    
+        
     struct sr_rt* next_node = sr->routing_table;
     uint8_t* empty_packet=NULL;
     while (next_node != NULL){
@@ -79,6 +77,23 @@ void sr_handlepacket(struct sr_instance* sr,
   /* TODO: Convert from network byte order to host byte order */
   /* TODO: Checksums! Use cksum in sr_utils.c to compare to buf's checksum. Remember to set checksum field to zero 
   before passing the buf to cksum*/
+
+  /*
+  Cases: 
+  1. IP Packet
+    Case 1: Addressed to router
+      > If it's ICMP echo req, send echo reply
+      > If it's TCP/UDP, send ICMP port unreachable (type 3 code 3)
+    Case 2: Not addressed to router 
+      > Check routing table
+        - No match: ICMP net unreachable
+        - Match: Check ARP cache
+          -> Hit: Sent the frame to the next hop
+          -> Miss: Send ARP request and queue packets waiting
+  2. ARP Packet
+    > Reply to me: Cache and send outstanding packets
+    > Request to me: Construct reply and send 
+  */
 
 }/* end sr_ForwardPacket */
 

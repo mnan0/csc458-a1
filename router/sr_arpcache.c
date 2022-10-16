@@ -76,7 +76,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
                 memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
                 memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_t3_hdr));
-
+                print_hdrs(buf, sizeof(buf));
                 sr_send_packet(sr, buf, sizeof(buf), curr_packet->iface);
 
                 /* Free memory */

@@ -4,6 +4,7 @@
         "cstring": "c",
         "xmemory": "c",
         "xutility": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "sr_arpcache.h": "c"
     }
 }
