@@ -36,7 +36,7 @@ void sr_init(struct sr_instance* sr)
     printf("%s", sr->routing_table->interface);
     /* Add initialization code here! */
     struct sr_rt* next_node = sr->routing_table;
-    uint8_t* empty_packet;
+    uint8_t* empty_packet=NULL;
     while (next_node != NULL){
       struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), next_node->dest.s_addr, empty_packet, 0, next_node->interface);
       free(req);
