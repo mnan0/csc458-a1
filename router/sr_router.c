@@ -33,9 +33,14 @@ void sr_init(struct sr_instance* sr)
 
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
     
-    /*Need to set up if_list, sockfd, cache*/
     printf("%s", sr->routing_table->interface);
-    
+    /* Add initialization code here! */
+    struct sr_rt* next_node = sr->routing_table;
+    uint8_t* empty_packet;
+    while (next_node != NULL){
+      sr_arpcache_queuereq(sr->cache, next_node->dest, empty_packet, 0, next_node->interface);
+      next_node = next_node->next;
+    }
 } /* -- sr_init -- */
 
 /*---------------------------------------------------------------------

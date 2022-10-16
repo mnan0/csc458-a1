@@ -17,7 +17,74 @@
   See the comments in the header file for an idea of what it should look like.
 */
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
-    /* Fill this in */
+    struct sr_arpreq *curr_req = sr->cache.requests;
+    while(curr_req != NULL){
+        handle_arprequest(curr_req);
+        curr_req = curr_req->next;
+    }
+
+}
+
+void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
+    // if difftime(now, req->sent) > 1.0
+    //        if req->times_sent >= 5:
+    //            send icmp host unreachable to source addr of all pkts waiting
+    //              on this request
+    //            arpreq_destroy(req)
+    //        else:
+    //            send arp request
+    //            req->sent = now
+    //            req->times_sent++
+    time_t now;
+    struct tm *mytime = localtime(&now); 
+    if (difftime(mytime, req->sent) > 1.0){
+        if (req->times_sent >= 5){
+            //Send icmp host
+            // /*Construct Ethernet Header*/
+            // struct sr_ethernet_hdr ethernet_hdr;
+            // ethernet_hdr.ether_dhost = req->ip;
+            // sr_arpcache_destroy(req);
+        }
+        else {
+            /*Loop through all router interfaces and send an ARP request to each*/
+            struct sr_if *curr_if = sr->if_list;
+            while(curr_if != NULL){
+                /* Set up ethernet header */
+                struct sr_ethernet_hdr ethernet_hdr = malloc(sizeof(sr_ethernet_hdr));
+                ethernet_hdr.ether_dhost = {255,255,255,255,255,255};
+                ethernet_hdr.ether_shost = curr_if->addr;
+                ethernet_hdr.ether_type = ethertype_arp;
+                
+                /* Set up ARP header */
+                struct sr_arp_hdr arp_hdr = malloc(sizeof(sr_arp_hdr));
+                arp_hdr.ar_hrd = arp_hrd_ethernet;
+                arp_hdr.ar_pro = ethertype_ip;
+                arp_hdr.ar_hln = sizeof(curr_if->addr);
+                arp_hdr.ar_pln = sizeof(curr_if->ip);
+                arp_hdr.ar_op = arp_op_request;
+                arp_hdr.ar_sha = curr_if->addr;
+                arp_hdr.ar_tha = NULL;
+                apr_hdr.ar_sip = curr_if->ip;
+                apr_hdr.ar_tip = req->ip;
+                
+                uint8_t* buf = malloc(sizeof(arp_hdr) + sizeof(ethernet_hdr));
+                memcpy(buf, ethernet_hdr, sizeof(ethernet_hdr));
+                memcpy(buf + sizeof(ethernet_hdr), arp_hdr, sizeof(arp_hdr));
+                free(ethernet_hdr);
+                free(arp_hdr);
+
+                sr_send_packet(sr, buf, curr_if->name);
+
+                /* Free memory */
+                free(buf);
+                curr_if = curr_if->next;
+            }
+            
+
+            req->send = mytime;
+            req->times_sent++;
+        }
+    }
 }
 
 /* You should not need to touch the rest of this code. */
