@@ -32,7 +32,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
         if (req->times_sent >= 5){
             /*Loop through each packet in req and send an icmp type */
             struct sr_packet* curr_packet = req->packets;
-            while (sr_packet != NULL){
+            while (curr_packet != NULL){
                 /*TODO: Does it send multiple ICMP responses to the same host?*/
                 /* Set up ethernet header */
                 struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
@@ -45,9 +45,8 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
 
 
-
                 memcpy(ethernet_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
-                memcpy(ethernet_hdr->ether_shost, new_source->addr, sizeof(new_source->addr);
+                memcpy(ethernet_hdr->ether_shost, new_source->addr, sizeof(new_source->addr));
                 ethernet_hdr->ether_type = ethertype_ip;
 
                 /*Set up IP header*/
@@ -88,7 +87,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
 
                 curr_packet = curr_packet->next;
             }
-            sr_arpcache_destroy(req);
+            sr_arpreq_destroy(sr->cache,req);
         }
         else {
             /*Loop through all router interfaces and send an ARP request to each*/
