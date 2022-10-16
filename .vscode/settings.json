@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "sr_rt.h": "c"
+        "sr_rt.h": "c",
+        "cstring": "c",
+        "xmemory": "c",
+        "xutility": "c"
     }
 }
