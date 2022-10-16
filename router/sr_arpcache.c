@@ -40,7 +40,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
     if (difftime(mytime, req->sent) > 1.0){
         if (req->times_sent >= 5){
            /* Send icmp host
-            /*Construct Ethernet Header
+            Construct Ethernet Header
             struct sr_ethernet_hdr ethernet_hdr;
             ethernet_hdr.ether_dhost = req->ip;
             sr_arpcache_destroy(req);*/
@@ -50,22 +50,23 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             struct sr_if *curr_if = sr->if_list;
             while(curr_if != NULL){
                 /* Set up ethernet header */
-                struct sr_ethernet_hdr ethernet_hdr = malloc(sizeof(sr_ethernet_hdr));
-                ethernet_hdr.ether_dhost = {255,255,255,255,255,255};
+                struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
+                uint8_t broadcast_mac[ETHER_ADDR_LEN] = {255,255,255,255,255,255};
+                memcpy(ethernet_hdr->ether_dhost, broadcast_mac, sizeof(broadcast_mac));
                 ethernet_hdr.ether_shost = curr_if->addr;
                 ethernet_hdr.ether_type = ethertype_arp;
                 
                 /* Set up ARP header */
-                struct sr_arp_hdr arp_hdr = malloc(sizeof(sr_arp_hdr));
+                struct sr_arp_hdr* arp_hdr = malloc(sizeof(struct sr_arp_hdr));
                 arp_hdr.ar_hrd = arp_hrd_ethernet;
                 arp_hdr.ar_pro = ethertype_ip;
                 arp_hdr.ar_hln = sizeof(curr_if->addr);
                 arp_hdr.ar_pln = sizeof(curr_if->ip);
                 arp_hdr.ar_op = arp_op_request;
-                arp_hdr.ar_sha = curr_if->addr;
-                arp_hdr.ar_tha = NULL;
-                apr_hdr.ar_sip = curr_if->ip;
-                apr_hdr.ar_tip = req->ip;
+                strcpy(arp_hdr.ar_sha,curr_if->addr);
+                //arp_hdr.ar_tha = NULL;
+                strcpy(arp_hdr.ar_sip,curr_if->ip);
+                strcpy(arp_hdr.ar_tip,req->ip)
                 
                 uint8_t* buf = malloc(sizeof(arp_hdr) + sizeof(ethernet_hdr));
                 memcpy(buf, ethernet_hdr, sizeof(ethernet_hdr));
@@ -73,7 +74,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 free(ethernet_hdr);
                 free(arp_hdr);
 
-                sr_send_packet(sr, buf, curr_if->name);
+                sr_send_packet(sr, buf, sizeof(buf),curr_if->name);
 
                 /* Free memory */
                 free(buf);
