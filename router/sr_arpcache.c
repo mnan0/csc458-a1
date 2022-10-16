@@ -53,20 +53,20 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
                 uint8_t broadcast_mac[ETHER_ADDR_LEN] = {255,255,255,255,255,255};
                 memcpy(ethernet_hdr->ether_dhost, broadcast_mac, sizeof(broadcast_mac));
-                ethernet_hdr.ether_shost = curr_if->addr;
-                ethernet_hdr.ether_type = ethertype_arp;
+                ethernet_hdr->ether_shost = curr_if->addr;
+                ethernet_hdr->ether_type = ethertype_arp;
                 
                 /* Set up ARP header */
                 struct sr_arp_hdr* arp_hdr = malloc(sizeof(struct sr_arp_hdr));
-                arp_hdr.ar_hrd = arp_hrd_ethernet;
-                arp_hdr.ar_pro = ethertype_ip;
-                arp_hdr.ar_hln = sizeof(curr_if->addr);
-                arp_hdr.ar_pln = sizeof(curr_if->ip);
-                arp_hdr.ar_op = arp_op_request;
-                strcpy(arp_hdr.ar_sha,curr_if->addr);
+                arp_hdr->ar_hrd = arp_hrd_ethernet;
+                arp_hdr->ar_pro = ethertype_ip;
+                arp_hdr->ar_hln = sizeof(curr_if->addr);
+                arp_hdr->ar_pln = sizeof(curr_if->ip);
+                arp_hdr->ar_op = arp_op_request;
+                strcpy(arp_hdr->ar_sha,curr_if->addr);
                 //arp_hdr.ar_tha = NULL;
-                strcpy(arp_hdr.ar_sip,curr_if->ip);
-                strcpy(arp_hdr.ar_tip,req->ip)
+                strcpy(arp_hdr->ar_sip,curr_if->ip);
+                strcpy(arp_hdr->ar_tip,req->ip)
                 
                 uint8_t* buf = malloc(sizeof(arp_hdr) + sizeof(ethernet_hdr));
                 memcpy(buf, ethernet_hdr, sizeof(ethernet_hdr));
