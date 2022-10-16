@@ -6,6 +6,8 @@
 #include <pthread.h>
 #include <sched.h>
 #include <string.h>
+#include <sr_utils.h>
+
 #include "sr_arpcache.h"
 #include "sr_router.h"
 #include "sr_if.h"
@@ -57,18 +59,18 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 ip_hdr->ip_off = IP_DF; /* if this causes problems, try IP_RF*/
                 ip_hdr->ip_ttl = INIT_TTL;
                 ip_hdr->ip_p = ip_protocol_icmp;
-                ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr.ip_hl);
-                memcpy(ip_hdr->ip_src, new_source->ip, sizeof(new_source->ip));
-                memcpy(ip_hdr->ip_dst, curr_packet_ip_hdr->ip_src, sizeof(curr_packet_ip_hdr->ip_src)); 
+                ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl);
+                memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
+                memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
 
                 /*Set up ICMP header*/
                 struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_ip_sr_icmp_t3_hdr));
                 icmp_hdr->icmp_type = 3;
                 icmp_hdr->icmp_code = 1;
-                icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr.ip_len - ip_hdr.ip_hl); 
+                icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - ip_hdr->ip_hl); 
                 icmp_hdr->unused = 0;
                 icmp_hdr->next_mtu = 1500;
-                icmp_hdr->data = (uint8_t*) curr_packet_ip_hdr;
+                memcpy(icmp_hdr->data,curr_packet_ip_hdr,ICMP_DATA_SIZE);
                 
                 /*Construct buf and send packet*/
                 uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
