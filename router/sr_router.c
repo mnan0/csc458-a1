@@ -38,7 +38,8 @@ void sr_init(struct sr_instance* sr)
     struct sr_rt* next_node = sr->routing_table;
     uint8_t* empty_packet;
     while (next_node != NULL){
-      sr_arpcache_queuereq(sr->cache, next_node->dest, empty_packet, 0, next_node->interface);
+      struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), next_node->dest.s_addr, empty_packet, 0, next_node->interface);
+      free(req);
       next_node = next_node->next;
     }
 } /* -- sr_init -- */
