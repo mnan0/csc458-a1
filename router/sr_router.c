@@ -169,7 +169,7 @@ void sr_handlepacket(struct sr_instance* sr,
     /*curr_packet_ip_hdr->ip_id = ntohs(curr_packet_ip_hdr->ip_id);*/
     /* curr_packet_ip_hdr->ip_off = ntohs(curr_packet_ip_hdr->ip_off);*/
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
-    uint16_t incoming_packet_sum = ntohs(curr_packet_ip_hdr->ip_sum);
+    uint16_t incoming_packet_sum = curr_packet_ip_hdr->ip_sum;
     
     curr_packet_ip_hdr->ip_sum = 0;
     uint16_t new_calculated_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
