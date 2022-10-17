@@ -195,7 +195,7 @@ void sr_handlepacket(struct sr_instance* sr,
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           while (curr_packet != NULL){
             printf("SENDING PACKET FROM REQ QUEUE!\n");
-            print_hdrs(curr_packet->buf, buf,sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr)+sizeof(struct sr_icmp_hdr))
+            print_hdrs(curr_packet->buf, buf,sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr)+sizeof(struct sr_icmp_hdr));
             sr_send_packet(sr, curr_packet->buf, curr_packet->len, curr_packet->iface);
             curr_packet = curr_packet->next;
           }
