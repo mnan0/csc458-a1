@@ -190,7 +190,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         if (arpreq_for_currip){
         /*TODO: Send all packets that were queues on the req and destroy req*/
-          int tm
+          int tmp=0;
         }
         else{
           perror("Router received ARP reply without asking for it.\n");
