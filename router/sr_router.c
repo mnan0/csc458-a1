@@ -175,7 +175,7 @@ void sr_handlepacket(struct sr_instance* sr,
     uint16_t new_calculated_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
     /*print_hdrs(packet, sizeof(struct sr_ip_hdr) + sizeof(struct sr_ethernet_hdr));*/
     
-    if (incoming_packet_sum == new_calculated_sum && sizeof(curr_packet_ip_hdr) >= sizeof(struct sr_ip_hdr)){
+    if (incoming_packet_sum == new_calculated_sum && sizeof(*curr_packet_ip_hdr) >= sizeof(struct sr_ip_hdr)){
       /*decrement ttl*/
       curr_packet_ip_hdr->ip_ttl--;
       /*longest prefix match in routing table*/
