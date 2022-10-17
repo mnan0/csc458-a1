@@ -44,6 +44,40 @@ void sr_init(struct sr_instance* sr)
     }
 } /* -- sr_init -- */
 
+/** 
+Converts decimal to binary
+From https://stackoverflow.com/questions/15114140/writing-binary-number-system-in-c-code*/
+// static inline unsigned long long S_to_binary_(const char *s)
+// {
+//         unsigned long long i = 0;
+//         while (*s) {
+//                 i <<= 1;
+//                 i += *s++ - '0';
+//         }
+//         return i;
+// }
+/***
+Method: sr_lpm()
+Scope: local
+
+Helper function to calculate longest prefix match
+Returns the IP address in the routing table that most closely matches the given IP
+*/
+struct in_addr * sr_lpm(struct sr_instance * sr,uint32_t ip_dst){
+  int max=0;
+  int num_matching_bits=0;
+  struct sr_rt * curr_rt = sr->routing_table;
+  uint32_t masked=0;
+  while (curr_rt != NULL){
+    // unsigned long long dest_binary = S_to_binary_((const char *)&(curr_rt->dest.s_addr));
+    masked = curr_rt->mask.s_addr & curr_rt->dest.s_addr;
+    if (masked == ip_dst){
+      return curr_rt->dest;
+    }
+    curr_rt = curr_rt->next;
+  }
+}
+
 /*---------------------------------------------------------------------
  * Method: sr_handlepacket(uint8_t* p,char* interface)
  * Scope:  Global
@@ -97,6 +131,7 @@ void sr_handlepacket(struct sr_instance* sr,
   struct sr_ethernet_hdr* curr_packet_eth_hdr = (struct sr_ethernet_hdr*) packet;
   uint16_t ether_type = ntohs(curr_packet_eth_hdr->ether_type);
 
+   /*-----------------------------------------ARP PACKET HANDLING----------------------------------*/
   if (ether_type == ethertype_arp){
     /*Incoming packet is an ARP packet*/
     struct sr_arp_hdr* curr_packet_arp_hdr = (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
@@ -162,24 +197,42 @@ void sr_handlepacket(struct sr_instance* sr,
     }
 
   }
+  /*-----------------------------------------IP/ICMP PACKET HANDLING----------------------------------*/
   else if (ether_type == ethertype_ip){
     /*Incoming packet is an IP packet*/
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
-    /*curr_packet_ip_hdr->ip_len = ntohs(curr_packet_ip_hdr->ip_len);*/
-    /*curr_packet_ip_hdr->ip_id = ntohs(curr_packet_ip_hdr->ip_id);*/
-    /* curr_packet_ip_hdr->ip_off = ntohs(curr_packet_ip_hdr->ip_off);*/
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
+    if (curr_packet_ip_hdr->ip_ttl <= 0){
+      /*TODO: Need to send a ICMP Time exceed type 11*/
+      return;
+    }
     uint16_t incoming_packet_sum = curr_packet_ip_hdr->ip_sum;
     
     curr_packet_ip_hdr->ip_sum = 0;
     uint16_t new_calculated_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
-    /*print_hdrs(packet, sizeof(struct sr_ip_hdr) + sizeof(struct sr_ethernet_hdr));*/
     if (incoming_packet_sum == new_calculated_sum && sizeof(*curr_packet_ip_hdr) >= sizeof(struct sr_ip_hdr)){
-      /*decrement ttl*/
+      /*decrement ttl and recalculate cksum*/
       curr_packet_ip_hdr->ip_ttl--;
       curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
+      
+      
       /*longest prefix match in routing table*/
+      struct in_addr* best_match = sr_lpm(sr, curr_packet_ip_hdr->ip_dst);
+      if (!best_match){
+        /*No best match, need to send destination host unreachable ICMP type 3 code 1*/
+
+        return;
+      }
       /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
+      struct sr_arpentry * matching_entry = sr_arpcache_lookup(sr->cache, best_match->s_addr);
+      if (!matching_entry){
+        /*No matching ARP entry, need to add a request and queue the packet*/
+
+        return;
+      }
+      /*If we got here, we can forward the packet! (Doesn't matter if ICMP or IP)*/
+      sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr), input_interface->name);
+      free(matching_entry);
     }
   }
 
