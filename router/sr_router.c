@@ -167,6 +167,7 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
     uint16_t incoming_packet_sum = ntohs(curr_packet_ip_hdr->ip_sum);
+    uint16_t incoming_packet_sum2 = curr_packet_ip_hdr->ip_sum;
     curr_packet_ip_hdr->ip_sum = 0;
     uint16_t new_calculated_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl);
     print_hdrs(packet, sizeof(struct sr_ip_hdr) + sizeof(struct sr_ethernet_hdr));
