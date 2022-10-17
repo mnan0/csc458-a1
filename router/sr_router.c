@@ -244,13 +244,7 @@ void sr_handlepacket(struct sr_instance* sr,
         }
         /*Check if reply destination in ARP cache, otherwise set up ARP request and store packet*/
         uint32_t echo_reply_dest = curr_packet_ip_hdr->ip_src;
-        struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), echo_reply_dest);
         
-        if (!matching_entry){
-          /*No matching ARP entry, need to add a request and queue the packet*/
-          sr_arpcache_queuereq(&(sr->cache), echo_reply_dest, packet, len, interface);
-          return;
-        }
         /*Send the echo reply*/
         /* Set up ethernet header */
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
@@ -289,6 +283,21 @@ void sr_handlepacket(struct sr_instance* sr,
         memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
         memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
         memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_hdr));
+        
+        /*Check if we need to either send or add to queue*/
+        struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), echo_reply_dest);
+        if (!matching_entry){
+          /*No matching ARP entry, need to add a request and queue the packet*/
+          sr_arpcache_queuereq(&(sr->cache), echo_reply_dest, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
+           /* Free memory */
+          free(buf);
+          free(ethernet_hdr);
+          free(ip_hdr);
+          free(icmp_hdr);
+          return;
+        }
+  
+        
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
         print_hdrs(buf, sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr) + sizeof(struct sr_ethernet_hdr));
         /* Free memory */
