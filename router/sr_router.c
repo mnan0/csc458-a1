@@ -142,7 +142,7 @@ void sr_handlepacket(struct sr_instance* sr,
     uint32_t arp_target_ip = curr_packet_arp_hdr->ar_tip;
       /** break here and check endianness*/
     if (opcode == arp_op_request){
-      printf("INCOMING ARP REQUEST PACKET!");
+      printf("INCOMING ARP REQUEST PACKET!\n");
       /*ARP Request, need to create a reply and send packet*/
       if (arp_target_ip == input_interface->ip){
         /*This request is for us, send a reply*/
@@ -183,7 +183,7 @@ void sr_handlepacket(struct sr_instance* sr,
     }
 
     else if (opcode == arp_op_reply){
-      printf("INCOMING ARP REPLY PACKET!");
+      printf("INCOMING ARP REPLY PACKET!\n");
 
       /*ARP Reply, cache result and send all packets assosiated with request*/
       
@@ -217,6 +217,7 @@ void sr_handlepacket(struct sr_instance* sr,
   /*-----------------------------------------IP/ICMP PACKET HANDLING----------------------------------*/
   else if (ether_type == ethertype_ip){
     /*Incoming packet is an IP packet*/
+    printf("INCOMING IP PACKET!\n");
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
     if (curr_packet_ip_hdr->ip_ttl <= 0){
