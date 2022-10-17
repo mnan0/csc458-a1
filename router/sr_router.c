@@ -116,7 +116,7 @@ void sr_handlepacket(struct sr_instance* sr,
       struct sr_if* input_interface = sr_get_interface(sr, interface);
       if (arp_target_ip == input_interface->ip){
         /*This reply is for us, insert into cache*/
-        sr_arpcache_insert(sr->cache, curr_path_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
+        sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
       }
       else {
         /*Reply is for someone else, check if next hop is available*/
