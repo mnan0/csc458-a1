@@ -348,6 +348,7 @@ void *sr_arpcache_timeout(void *sr_ptr) {
         
         int i;    
         for (i = 0; i < SR_ARPCACHE_SZ; i++) {
+            printf("Testing timeout");
             if ((cache->entries[i].valid) && (difftime(curtime,cache->entries[i].added) > SR_ARPCACHE_TO)) {
                 printf("Timing out cache");
                 cache->entries[i].valid = 0;
