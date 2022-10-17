@@ -324,6 +324,7 @@ void sr_handlepacket(struct sr_instance* sr,
       struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), best_match->s_addr);
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
+        /*TODO: rewrite packet ethernet header to be correct source and dest mac*/
         sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
         return;
       }
