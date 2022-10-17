@@ -273,6 +273,7 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_p = ip_protocol_icmp;
         ip_hdr->ip_hl = 4;
         ip_hdr->ip_v = 4;
+        ip_hdr->ip_sum = 0;
         ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl*4);
         memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
         memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
@@ -281,7 +282,8 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_icmp_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_hdr));
         icmp_hdr->icmp_type = 0;
         icmp_hdr->icmp_code = 0;
-        icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - ip_hdr->ip_hl * 4); 
+        icmp_hdr->icmp_sum = 0;
+        icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - (ip_hdr->ip_hl * 4)); 
         
         /*Construct buf and send packet*/
         uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
