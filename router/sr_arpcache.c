@@ -97,7 +97,8 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 uint8_t broadcast_mac[ETHER_ADDR_LEN] = {255,255,255,255,255,255};
                 memcpy(ethernet_hdr->ether_dhost, broadcast_mac, sizeof(broadcast_mac));
                 memcpy(ethernet_hdr->ether_shost,curr_if->addr, sizeof(curr_if->addr));
-                ethernet_hdr->ether_type=ethertype_arp;
+                ethernet_hdr->ether_type= htons(ethertype_arp);
+
                 
                 /* Set up ARP header */
                 struct sr_arp_hdr* arp_hdr = malloc(sizeof(struct sr_arp_hdr));
