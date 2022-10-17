@@ -191,7 +191,7 @@ void sr_handlepacket(struct sr_instance* sr,
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         pthread_mutex_lock(&(sr->cache).lock);
-        sr->cache.entries[0].lock = 1;
+        sr->cache.entries[0].valid = 1;
         pthread_mutex_unlock(&(sr->cache).lock);
         if (arpreq_for_currip){
           /*TODO: Send all packets that were queues on the req and destroy req*/
