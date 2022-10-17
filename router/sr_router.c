@@ -154,38 +154,7 @@ void sr_handlepacket(struct sr_instance* sr,
       }
       else {
         perror("ARP Reply not sent to correct router interface ip");
-      }
-      /* else {
-      //   /*Reply is for someone else, check if next hop is available*/
-      //   /*First we check if dest ip is in the routing table, if not, send ICMP type 3 code 0 */
-      //   struct sr_rt* curr_rt_node = sr->routing_table;
-      //   bool matching_dest_ip = false;
-      //   while (curr_rt_node != NULL){
-      //     if (curr_rt_node->dest.s_addr == arp_target_ip) {
-      //       matching_dest_ip = true;
-      //     }
-      //   }
-      //   if (!matching_dest_ip){
-      //     /*No matching route, send ICMP type 3 code 0*/
-          
-      //   }
-      //   else {
-      //     /*Next we check if the dest ip/mac is in the cache, if not add a request and store the packet*/
-      //     struct sr_arpentry* returned_entry = sr_arpcache_lookup(sr->cache, arp_target_ip);
-      //     if (returned_entry == NULL){
-      //       /* Create an ARP request*/
-      //     }
-      //     else {
-      //       /*Can we forward the packet to its desired ip*/
-
-      //       free(returned_entry);
-      //     }
-
-      //     /*When previous conditions are met, forward the packet*/
-          
-      //   }
-      // }*/
-      
+      }      
     }
 
     else {
