@@ -34,6 +34,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             struct sr_packet* curr_packet = req->packets;
             while (curr_packet != NULL){
                 /*TODO: Does it send multiple ICMP responses to the same host?*/
+                /*TODO: Test the if functionality*/
                 /* Set up ethernet header */
                 struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
                 struct sr_if* new_source = sr_get_interface(sr, curr_packet->iface);
@@ -118,7 +119,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 free(ethernet_hdr);
                 free(arp_hdr);
 
-                print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));
+                /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
                 sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr),curr_if->name);
 
                 /* Free memory */

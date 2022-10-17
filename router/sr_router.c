@@ -95,5 +95,50 @@ void sr_handlepacket(struct sr_instance* sr,
     > Request to me: Construct reply and send 
   */
 
+  /*Unpack packet buf to get dhost from ethernet frame*/
+  struct sr_ethernet_hdr* curr_packet_eth_hdr = (struct sr_ethernet_hdr*) packet;
+  uint16_t ether_type = ntohs(curr_packet_eth_hdr->ether_type);
+
+  if (ether_type == ethertype_arp){
+    /*Incoming packet is an ARP packet*/
+    struct sr_arp_hdr* curr_packet_arp_hdr = (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
+    unsigned short opcode = ntohs(curr_packet_arp_hdr->ar_op);
+
+    if (opcode == arp_op_request){
+      /*ARP Request, need to create a reply and send packet*/
+      /* pass along if not targeted for router*/
+    }
+
+    else if (opcode == arp_op_reply){
+      /*ARP Reply, cache result and send all packets assosiated with request*/
+      /* check target ip, if not equal to one of router's interfaces, pass it on */
+      uint32_t arp_target_ip = curr_packet_arp_hdr->ar_tip;
+      struct sr_if* input_interface = sr_get_interface(sr, interface);
+      if (arp_target_ip == input_interface->ip){
+        /*This reply is for us, insert into cache*/
+        sr_arpcache_insert(sr->cache, curr_path_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
+      }
+      else {
+        /*Reply is for someone else, check if next hop is available*/
+      }
+      //
+    }
+
+    else {
+      perror("ARP packet recieved but opcode isn't request or reply");
+    }
+
+  }
+  else if (ether_type == ethertype_ip){
+    /*Incoming packet is an IP packet*/
+    struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
+    /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
+
+  }
+
+  else {
+    perror("Incoming packet is neither ethertype ARP nor IP");
+  }
+
 }/* end sr_ForwardPacket */
 
