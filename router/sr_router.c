@@ -36,7 +36,7 @@ void sr_init(struct sr_instance* sr)
     struct sr_rt* next_node = sr->routing_table;
     uint8_t* empty_packet=NULL;
     while (next_node != NULL){
-      /* Note: necessary to queue at beginning? */
+      /* TODO: Note: necessary to queue at beginning? */
       struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), next_node->dest.s_addr, empty_packet, 0, next_node->interface);
       /*TODO: Figure out what to do with the req*/
       /* Current theory: freeing occurs after ICMP or reply is received*/
@@ -166,7 +166,14 @@ void sr_handlepacket(struct sr_instance* sr,
     /*Incoming packet is an IP packet*/
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
-
+    uint16_t incoming_packet_sum = curr_packet_ip_hdr->ip_sum;
+    curr_packet_ip_hdr->ip_sum = 0;
+    if (incoming_packet_sum == cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl) && sizeof(curr_packet_ip_hdr) >= sizeof(struct sr_ip_hdr)){
+      /*decrement ttl*/
+      curr_packet_ip_hdr->ip_ttl--;
+      /*longest prefix match in routing table*/
+      /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
+    }
   }
 
   else {
