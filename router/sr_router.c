@@ -172,7 +172,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
           /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
           sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr), input_interface->name);
-          print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));
+          /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
           /* Free memory */
           free(buf);
       }
@@ -254,7 +254,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
         struct sr_if* new_source = sr_get_interface(sr, interface);
         memcpy(curr_packet_eth_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
-        memcpy(curr_packet_eth_hdr->ether_shost, new_source, sizeof(struct sr_if));
+        memcpy(curr_packet_eth_hdr->ether_shost, new_source->addr, sizeof(new_source->addr));
         
         uint32_t temp_ip = curr_packet_ip_hdr->ip_dst;
         memcpy(&(curr_packet_ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src));
