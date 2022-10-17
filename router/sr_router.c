@@ -192,6 +192,7 @@ void sr_handlepacket(struct sr_instance* sr,
           /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           while (curr_packet != NULL){
+            print_hdrs(buf, sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr) + sizeof(struct sr_ethernet_hdr));
             sr_send_packet(sr, curr_packet->buf, curr_packet->len, curr_packet->iface);
             curr_packet = curr_packet->next;
           }
@@ -299,7 +300,6 @@ void sr_handlepacket(struct sr_instance* sr,
   
         
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
-        print_hdrs(buf, sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr) + sizeof(struct sr_ethernet_hdr));
         /* Free memory */
         free(buf);
         free(ethernet_hdr);
