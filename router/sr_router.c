@@ -120,7 +120,7 @@ void sr_handlepacket(struct sr_instance* sr,
           arp_hdr->ar_pro = htons(ethertype_ip);
           arp_hdr->ar_hln = sizeof(input_interface->addr);
           arp_hdr->ar_pln = sizeof(input_interface->ip);
-          arp_hdr->ar_op = htons(aarp_op_reply);
+          arp_hdr->ar_op = htons(arp_op_reply);
           memcpy(arp_hdr->ar_sha,input_interface->addr,sizeof(input_interface->addr));
           memcpy(arp_hdr->ar_tha, curr_packet_arp_hdr->ar_sha, sizeof(curr_packet_arp_hdr->ar_sha));
           memcpy(&(arp_hdr->ar_sip),&(input_interface->ip),sizeof(uint32_t));
@@ -155,7 +155,7 @@ void sr_handlepacket(struct sr_instance* sr,
       else {
         perror("ARP Reply not sent to correct router interface ip");
       }
-      // else {
+      /* else {
       //   /*Reply is for someone else, check if next hop is available*/
       //   /*First we check if dest ip is in the routing table, if not, send ICMP type 3 code 0 */
       //   struct sr_rt* curr_rt_node = sr->routing_table;
@@ -184,7 +184,7 @@ void sr_handlepacket(struct sr_instance* sr,
       //     /*When previous conditions are met, forward the packet*/
           
       //   }
-      // }
+      // }*/
       
     }
 
