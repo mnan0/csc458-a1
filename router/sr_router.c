@@ -285,7 +285,7 @@ void sr_handlepacket(struct sr_instance* sr,
         icmp_hdr->icmp_sum = 0;
         uint16_t test1 = ntohs(ip_hdr->ip_len);
         uint16_t test2 = (ip_hdr->ip_hl * 4);
-        icmp_hdr->icmp_sum = 0;/*htons(cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)));*/
+        icmp_hdr->icmp_sum = htons(cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4))); 
         
         /*Construct buf and send packet*/
         uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
