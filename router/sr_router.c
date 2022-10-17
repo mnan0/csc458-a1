@@ -195,7 +195,7 @@ void sr_handlepacket(struct sr_instance* sr,
             sr_send_packet(sr, curr_packet->buf, curr_packet->len, curr_packet->iface);
             curr_packet = curr_packet->next;
           }
-          sr_arpreq_destroy(arpreq_for_currip);
+          sr_arpreq_destroy(&(sr->cache), arpreq_for_currip);
         }
         else{
           perror("Router received ARP reply without asking for it.\n");
