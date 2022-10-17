@@ -189,8 +189,13 @@ void sr_handlepacket(struct sr_instance* sr,
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         if (arpreq_for_currip){
-        /*TODO: Send all packets that were queues on the req and destroy req*/
-          int tmp=0;
+          /*TODO: Send all packets that were queues on the req and destroy req*/
+          struct sr_packet* curr_packet = arpreq_for_currip->packets;
+          while (curr_packet != NULL){
+            sr_send_packet(sr, curr_packet->buf, curr_packet->len, curr_packet->iface);
+            curr_packet = curr_packet->next;
+          }
+          sr_arpreq_destroy(arpreq_for_currip);
         }
         else{
           perror("Router received ARP reply without asking for it.\n");
