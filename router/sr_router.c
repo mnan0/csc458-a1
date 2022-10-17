@@ -190,6 +190,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         if (arpreq_for_currip){
         /*TODO: Send all packets that were queues on the req and destroy req*/
+          int tm
         }
         else{
           perror("Router received ARP reply without asking for it.\n");
@@ -224,10 +225,10 @@ void sr_handlepacket(struct sr_instance* sr,
       curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
       /*Check if ICMP Echo request for us, and if so, checksum the ICMP header and send a reply*/
-      if (curr_packet_ip_hdr.ip_p == ip_protocol_icmp && curr_packet_ip_hdr->ip_dst == input_interface->ip){
+      if (curr_packet_ip_hdr->ip_p == ip_protocol_icmp && curr_packet_ip_hdr->ip_dst == input_interface->ip){
         /*Incoming ICMP request destined for the router*/
         /*Checksum the ICMP and check that the request is an echo request*/
-        struct sr_icmp_hdr* curr_packet_icmp_hdr = (struct sr_icmp_hdr*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(sr_ip_hdr));
+        struct sr_icmp_hdr* curr_packet_icmp_hdr = (struct sr_icmp_hdr*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
         uint16_t incoming_icmp_sum =  curr_packet_icmp_hdr->icmp_sum;
         curr_packet_icmp_hdr->icmp_sum = 0;
         uint16_t new_icmp_calculated_sum = cksum(curr_packet_icmp_hdr, curr_packet_ip_hdr->ip_len - sizeof(struct sr_ip_hdr));
@@ -280,7 +281,7 @@ void sr_handlepacket(struct sr_instance* sr,
         memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
         memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
         memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_hdr));
-        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), curr_packet->iface);
+        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
         print_hdrs(buf, sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr) + sizeof(struct sr_ethernet_hdr));
         /* Free memory */
         free(buf);
