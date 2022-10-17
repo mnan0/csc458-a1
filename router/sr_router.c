@@ -188,6 +188,7 @@ void sr_handlepacket(struct sr_instance* sr,
       if (arp_target_ip == input_interface->ip){
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
+        printf("Added to cache");
         if (arpreq_for_currip){
           /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
