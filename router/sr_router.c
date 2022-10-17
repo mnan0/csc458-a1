@@ -257,7 +257,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
         memcpy(ethernet_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
         memcpy(ethernet_hdr->ether_shost, new_source->addr, sizeof(new_source->addr));
-        ethernet_hdr->ether_type = ethertype_ip;
+        ethernet_hdr->ether_type = htons(ethertype_ip);
 
         /*Set up IP header*/
         struct sr_ip_hdr* ip_hdr = malloc(sizeof(struct sr_ip_hdr));
