@@ -271,14 +271,14 @@ void sr_handlepacket(struct sr_instance* sr,
 
         /* free(matching_entry);*/
         /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
-        struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), best_match->s_addr);
+        struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), curr_packet_ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
+          sr_arpcache_queuereq(&(sr->cache), curr_packet_ip_hdr->ip_dst, packet, len, interface);
           return;
         }
         /*If we got here, we can send the packet!*/
-        sr_send_packet(sr, packet, len, iface);
+        sr_send_packet(sr, packet, len, interface);
         return;
       }
       /*If we get here, we need to forward a packet*/
