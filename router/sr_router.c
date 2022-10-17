@@ -46,7 +46,7 @@ void sr_init(struct sr_instance* sr)
 
 /** 
 Converts decimal to binary
-From https://stackoverflow.com/questions/15114140/writing-binary-number-system-in-c-code*/
+From https://stackoverflow.com/questions/15114140/writing-binary-number-system-in-c-code
 // static inline unsigned long long S_to_binary_(const char *s)
 // {
 //         unsigned long long i = 0;
@@ -56,7 +56,7 @@ From https://stackoverflow.com/questions/15114140/writing-binary-number-system-i
 //         }
 //         return i;
 // }
-/***
+/***s
 Method: sr_lpm()
 Scope: local
 
