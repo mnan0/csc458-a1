@@ -66,7 +66,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_t3_hdr));
                 icmp_hdr->icmp_type = 3;
                 icmp_hdr->icmp_code = 1;
-                icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - ip_hdr->ip_hl); 
+                icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - ip_hdr->ip_hl * 4); 
                 icmp_hdr->unused = 0;
                 icmp_hdr->next_mtu = 1500;
                 memcpy(icmp_hdr->data,curr_packet_ip_hdr,ICMP_DATA_SIZE);
