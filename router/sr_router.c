@@ -296,7 +296,7 @@ void sr_handlepacket(struct sr_instance* sr,
         sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
         return;
       }
-      sr_send_packet(sr, packet, len, iface);
+      sr_send_packet(sr, packet, len, interface);
       free(matching_entry);
     }
   }
