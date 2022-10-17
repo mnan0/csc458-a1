@@ -69,13 +69,14 @@ struct in_addr * sr_lpm(struct sr_instance * sr,uint32_t ip_dst){
   struct sr_rt * curr_rt = sr->routing_table;
   uint32_t masked=0;
   while (curr_rt != NULL){
-    // unsigned long long dest_binary = S_to_binary_((const char *)&(curr_rt->dest.s_addr));
+    /* unsigned long long dest_binary = S_to_binary_((const char *)&(curr_rt->dest.s_addr));*/
     masked = curr_rt->mask.s_addr & curr_rt->dest.s_addr;
     if (masked == ip_dst){
-      return curr_rt->dest;
+      return &(curr_rt->dest);
     }
     curr_rt = curr_rt->next;
   }
+  return NULL;
 }
 
 /*---------------------------------------------------------------------
@@ -214,7 +215,7 @@ void sr_handlepacket(struct sr_instance* sr,
       /*decrement ttl and recalculate cksum*/
       curr_packet_ip_hdr->ip_ttl--;
       curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
-      
+      /*TODO: Check if ICMP Echo request, and if so, checksum the ICMP header*/
       
       /*longest prefix match in routing table*/
       struct in_addr* best_match = sr_lpm(sr, curr_packet_ip_hdr->ip_dst);
@@ -231,7 +232,7 @@ void sr_handlepacket(struct sr_instance* sr,
         return;
       }
       /*If we got here, we can forward the packet! (Doesn't matter if ICMP or IP)*/
-      sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr), input_interface->name);
+     
       free(matching_entry);
     }
   }
