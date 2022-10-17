@@ -395,7 +395,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
       memcpy(curr_packet_eth_hdr->ether_dhost, matching_entry->mac, sizeof(matching_entry->mac));
       struct sr_if * outgoing_interface = get_if_list_for_rt_ip(sr,best_match->s_addr);
-      memcpy(curr_packet_eth_hdr->ether_shost, outgoing_interface->addr, sizeof(new_source->addr));
+      memcpy(curr_packet_eth_hdr->ether_shost, outgoing_interface->addr, sizeof(outgoing_interface->addr));
       sr_send_packet(sr, packet, len, outgoing_interface->name);
       free(matching_entry);
     }
