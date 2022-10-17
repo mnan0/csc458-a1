@@ -53,7 +53,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 /*Set up IP header*/
                 struct sr_ip_hdr* ip_hdr = malloc(sizeof(struct sr_ip_hdr));
                 ip_hdr->ip_tos = 0;
-                ip_hdr->ip_len = sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
+                ip_hdr->ip_len = htons(sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
                 ip_hdr->ip_id = 0;
                 ip_hdr->ip_off = IP_DF; /* if this causes problems, try IP_RF*/
                 ip_hdr->ip_ttl = INIT_TTL;
