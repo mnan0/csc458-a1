@@ -72,8 +72,6 @@ void sr_handlepacket(struct sr_instance* sr,
 
   printf("*** -> Received packet of length %d \n",len);
 
-  /* fill in code here */
-
   /* TODO: Convert from network byte order to host byte order */
   /* TODO: Checksums! Use cksum in sr_utils.c to compare to buf's checksum. Remember to set checksum field to zero 
   before passing the buf to cksum*/
@@ -103,24 +101,90 @@ void sr_handlepacket(struct sr_instance* sr,
     /*Incoming packet is an ARP packet*/
     struct sr_arp_hdr* curr_packet_arp_hdr = (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     unsigned short opcode = ntohs(curr_packet_arp_hdr->ar_op);
-
+    uint32_t arp_target_ip = curr_packet_arp_hdr->ar_tip;
+      /** break here and check endianness*/
     if (opcode == arp_op_request){
       /*ARP Request, need to create a reply and send packet*/
-      /* pass along if not targeted for router*/
+      struct sr_if* input_interface = sr_get_interface(sr, interface);
+      if (arp_target_ip == input_interface->ip){
+        /*This request is for us, send a reply*/
+         /* Set up ethernet header */
+          struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
+          memcpy(ethernet_hdr->ether_dhost, curr_packet_arp_hdr->ar_sha, sizeof(curr_packet_arp_hdr->ar_sha));
+          memcpy(ethernet_hdr->ether_shost, input_interface->addr, sizeof(input_interface->addr));
+          ethernet_hdr->ether_type= htons(ethertype_arp);
+
+          /* Set up ARP header */
+          struct sr_arp_hdr* arp_hdr = malloc(sizeof(struct sr_arp_hdr));
+          arp_hdr->ar_hrd = htons(arp_hrd_ethernet);
+          arp_hdr->ar_pro = htons(ethertype_ip);
+          arp_hdr->ar_hln = sizeof(input_interface->addr);
+          arp_hdr->ar_pln = sizeof(input_interface->ip);
+          arp_hdr->ar_op = htons(aarp_op_reply);
+          memcpy(arp_hdr->ar_sha,input_interface->addr,sizeof(input_interface->addr));
+          memcpy(arp_hdr->ar_tha, curr_packet_arp_hdr->ar_sha, sizeof(curr_packet_arp_hdr->ar_sha));
+          memcpy(&(arp_hdr->ar_sip),&(input_interface->ip),sizeof(uint32_t));
+          memcpy(&(arp_hdr->ar_tip),&(curr_packet_arp_hdr->ar_sip),sizeof(uint32_t));
+          
+          uint8_t* buf = malloc(sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));
+          memcpy(buf, ethernet_hdr, sizeof(*ethernet_hdr));
+          memcpy(buf + sizeof(*ethernet_hdr), arp_hdr, sizeof(*arp_hdr));
+          free(ethernet_hdr);
+          free(arp_hdr);
+
+          /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
+          sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr), input_interface->name);
+
+          /* Free memory */
+          free(buf);
+      }
+      else {
+        perror("ARP Request not sent to correct router interface ip");
+      }
+
     }
 
     else if (opcode == arp_op_reply){
       /*ARP Reply, cache result and send all packets assosiated with request*/
-      /* check target ip, if not equal to one of router's interfaces, pass it on */
-      uint32_t arp_target_ip = curr_packet_arp_hdr->ar_tip;
+      
       struct sr_if* input_interface = sr_get_interface(sr, interface);
       if (arp_target_ip == input_interface->ip){
         /*This reply is for us, insert into cache*/
         sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
       }
       else {
-        /*Reply is for someone else, check if next hop is available*/
+        perror("ARP Reply not sent to correct router interface ip");
       }
+      // else {
+      //   /*Reply is for someone else, check if next hop is available*/
+      //   /*First we check if dest ip is in the routing table, if not, send ICMP type 3 code 0 */
+      //   struct sr_rt* curr_rt_node = sr->routing_table;
+      //   bool matching_dest_ip = false;
+      //   while (curr_rt_node != NULL){
+      //     if (curr_rt_node->dest.s_addr == arp_target_ip) {
+      //       matching_dest_ip = true;
+      //     }
+      //   }
+      //   if (!matching_dest_ip){
+      //     /*No matching route, send ICMP type 3 code 0*/
+          
+      //   }
+      //   else {
+      //     /*Next we check if the dest ip/mac is in the cache, if not add a request and store the packet*/
+      //     struct sr_arpentry* returned_entry = sr_arpcache_lookup(sr->cache, arp_target_ip);
+      //     if (returned_entry == NULL){
+      //       /* Create an ARP request*/
+      //     }
+      //     else {
+      //       /*Can we forward the packet to its desired ip*/
+
+      //       free(returned_entry);
+      //     }
+
+      //     /*When previous conditions are met, forward the packet*/
+          
+      //   }
+      // }
       
     }
 
