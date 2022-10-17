@@ -231,7 +231,8 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_icmp_hdr* curr_packet_icmp_hdr = (struct sr_icmp_hdr*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
         uint16_t incoming_icmp_sum =  curr_packet_icmp_hdr->icmp_sum;
         curr_packet_icmp_hdr->icmp_sum = 0;
-        uint16_t new_icmp_calculated_sum = cksum(curr_packet_icmp_hdr, curr_packet_ip_hdr->ip_len - sizeof(struct sr_ip_hdr));
+        uint16_t testval = ntohs(curr_packet_ip_hdr->ip_len);
+        uint16_t new_icmp_calculated_sum = cksum(curr_packet_icmp_hdr, ntohs(curr_packet_ip_hdr->ip_len) - sizeof(struct sr_ip_hdr));
         if (incoming_icmp_sum != new_icmp_calculated_sum || (curr_packet_ip_hdr->ip_len - sizeof(struct sr_ip_hdr)) < sizeof(struct sr_icmp_hdr)){
           /*Checksum failed, return early and drop packet*/
           return;
