@@ -192,7 +192,7 @@ void sr_handlepacket(struct sr_instance* sr,
         /*TODO: Send all packets that were queues on the req and destroy req*/
         }
         else{
-          perror("Router received ARP reply without asking for it.\n")
+          perror("Router received ARP reply without asking for it.\n");
         }
       }
       else {
@@ -227,7 +227,7 @@ void sr_handlepacket(struct sr_instance* sr,
       if (curr_packet_ip_hdr.ip_p == ip_protocol_icmp && curr_packet_ip_hdr->ip_dst == input_interface->ip){
         /*Incoming ICMP request destined for the router*/
         /*Checksum the ICMP and check that the request is an echo request*/
-        struct sr_icmp_hdr* curr_packet_icmp_hdr = (struct sr_icmp_hdr*) (packet + sizeof(sr_ethernet_hdr) + sizeof(sr_ip_hdr));
+        struct sr_icmp_hdr* curr_packet_icmp_hdr = (struct sr_icmp_hdr*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(sr_ip_hdr));
         uint16_t incoming_icmp_sum =  curr_packet_icmp_hdr->icmp_sum;
         curr_packet_icmp_hdr->icmp_sum = 0;
         uint16_t new_icmp_calculated_sum = cksum(curr_packet_icmp_hdr, curr_packet_ip_hdr->ip_len - sizeof(struct sr_ip_hdr));
@@ -303,7 +303,7 @@ void sr_handlepacket(struct sr_instance* sr,
       struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), best_match->s_addr);
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
-        sr_arpcache_queuereq(&(sr->cache), best_match, packet, len, interface);
+        sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
         return;
       }
       /*If we got here, we can forward the packet!*/
