@@ -174,10 +174,10 @@ void sr_handlepacket(struct sr_instance* sr,
     curr_packet_ip_hdr->ip_sum = 0;
     uint16_t new_calculated_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
     /*print_hdrs(packet, sizeof(struct sr_ip_hdr) + sizeof(struct sr_ethernet_hdr));*/
-    int f = 5;
     if (incoming_packet_sum == new_calculated_sum && sizeof(*curr_packet_ip_hdr) >= sizeof(struct sr_ip_hdr)){
       /*decrement ttl*/
       curr_packet_ip_hdr->ip_ttl--;
+      curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
       /*longest prefix match in routing table*/
       /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
     }
