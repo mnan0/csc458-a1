@@ -27,9 +27,8 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 }
 
 void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
-    time_t now;
-    struct tm *mytime = localtime(&now); 
-    if (difftime(mktime(mytime), req->sent) > 1.0){
+    time_t now = time(0);
+    if (difftime(now, req->sent) > 1.0){
         if (req->times_sent >= 5){
             /*Loop through each packet in req and send an icmp type */
             struct sr_packet* curr_packet = req->packets;
@@ -127,7 +126,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             }
             
 
-            req->sent = mktime(mytime);
+            req->sent = now;
             req->times_sent++;
         }
     }
