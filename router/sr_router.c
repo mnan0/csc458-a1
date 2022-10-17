@@ -190,7 +190,7 @@ void sr_handlepacket(struct sr_instance* sr,
         printf("INCOMING ARP REPLY PACKET FOR US!\n");
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
-        if (*arpreq_for_currip){
+        if (arpreq_for_currip){
           /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           while (curr_packet != NULL){
