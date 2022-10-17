@@ -142,10 +142,10 @@ void sr_handlepacket(struct sr_instance* sr,
     uint32_t arp_target_ip = curr_packet_arp_hdr->ar_tip;
       /** break here and check endianness*/
     if (opcode == arp_op_request){
-      printf("INCOMING ARP REQUEST PACKET!\n");
       /*ARP Request, need to create a reply and send packet*/
       if (arp_target_ip == input_interface->ip){
         /*This request is for us, send a reply*/
+          printf("INCOMING ARP REQUEST PACKET FOR US!\n");
          /* Set up ethernet header */
           struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
           memcpy(ethernet_hdr->ether_dhost, curr_packet_arp_hdr->ar_sha, sizeof(curr_packet_arp_hdr->ar_sha));
@@ -183,12 +183,11 @@ void sr_handlepacket(struct sr_instance* sr,
     }
 
     else if (opcode == arp_op_reply){
-      printf("INCOMING ARP REPLY PACKET!\n");
-
       /*ARP Reply, cache result and send all packets assosiated with request*/
       
       struct sr_if* input_interface = sr_get_interface(sr, interface);
       if (arp_target_ip == input_interface->ip){
+        printf("INCOMING ARP REPLY PACKET FOR US!\n");
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         if (arpreq_for_currip){
