@@ -188,13 +188,15 @@ void sr_handlepacket(struct sr_instance* sr,
       if (arp_target_ip == input_interface->ip){
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
-        printf("Added to cache");
+        printf("\nAdded to cache\n");
         if (arpreq_for_currip){
           /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           while (curr_packet != NULL){
             print_hdrs(curr_packet->buf, sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr) + sizeof(struct sr_ethernet_hdr));
+            printf("\nSending packet from request queue\n");
             sr_send_packet(sr, curr_packet->buf, curr_packet->len, curr_packet->iface);
+            
             curr_packet = curr_packet->next;
           }
           sr_arpreq_destroy(&(sr->cache), arpreq_for_currip);
@@ -290,6 +292,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), echo_reply_dest);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
+          printf("\nPlacing packet on request queue\n");
           sr_arpcache_queuereq(&(sr->cache), echo_reply_dest, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
            /* Free memory */
           free(buf);
@@ -299,7 +302,7 @@ void sr_handlepacket(struct sr_instance* sr,
           return;
         }
   
-        
+        printf("\nSending packet as normal\n");
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
         /* Free memory */
         free(buf);
