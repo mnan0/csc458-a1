@@ -121,7 +121,7 @@ void sr_handlepacket(struct sr_instance* sr,
       else {
         /*Reply is for someone else, check if next hop is available*/
       }
-      //
+      
     }
 
     else {
@@ -131,7 +131,7 @@ void sr_handlepacket(struct sr_instance* sr,
   }
   else if (ether_type == ethertype_ip){
     /*Incoming packet is an IP packet*/
-    struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
+    struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
 
   }
