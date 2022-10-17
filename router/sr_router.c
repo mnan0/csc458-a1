@@ -251,74 +251,37 @@ void sr_handlepacket(struct sr_instance* sr,
         uint32_t echo_reply_dest = curr_packet_ip_hdr->ip_src;
         
         /*Send the echo reply*/
-        /* Set up ethernet header */
-        struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
+
         struct sr_if* new_source = sr_get_interface(sr, interface);
-        if (new_source == 0){
-            perror("Packet interface not recognized by routing table.");
-        }
-        /*Unpack packet buf to get dhost from ethernet frame*/
-
-        memcpy(ethernet_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
-        memcpy(ethernet_hdr->ether_shost, new_source->addr, sizeof(new_source->addr));
-        ethernet_hdr->ether_type = htons(ethertype_ip);
-
-        /*Set up IP header*/
-        struct sr_ip_hdr* ip_hdr = malloc(sizeof(struct sr_ip_hdr));
-        ip_hdr->ip_tos = 0;
-        ip_hdr->ip_len = htons(sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
-        ip_hdr->ip_id = 0;
-        ip_hdr->ip_off = htons(IP_DF); /* if this causes problems, try IP_RF*/
-        ip_hdr->ip_ttl = INIT_TTL;
-        ip_hdr->ip_p = ip_protocol_icmp;
-        ip_hdr->ip_hl = 5;
-        ip_hdr->ip_v = 4;
-        ip_hdr->ip_sum = 0;
-        ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl*4);
-        memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
-        memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
-
-        /*Set up ICMP header*/
-        struct sr_icmp_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_hdr));
-        icmp_hdr->icmp_type = 0;
-        icmp_hdr->icmp_code = 0;
-        icmp_hdr->icmp_sum = 0;
-        uint16_t test1 = ntohs(ip_hdr->ip_len);
-        uint16_t test2 = (ip_hdr->ip_hl * 4);
-        icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
+        memcpy(curr_packet_eth_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
+        memcpy(curr_packet_eth_hdr->ether_shost, new_source, sizeof(struct sr_if));
         
-        /*Construct buf and send packet*/
-        uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
-        memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
-        memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
-        memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_hdr));
-        
-        /*Check if we need to either send or add to queue*/
-        struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), echo_reply_dest);
-        if (!matching_entry){
-          /*No matching ARP entry, need to add a request and queue the packet*/
-          struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), echo_reply_dest, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
-           /* Free memory */
-          free(buf);
-          free(ethernet_hdr);
-          free(ip_hdr);
-          free(icmp_hdr);
-          return;
-        }
-  
-        printf("SENDING PACKET FROM CACHE!\n");
-        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
-        /* Free memory */
-        free(buf);
-        free(ethernet_hdr);
-        free(ip_hdr);
-        free(icmp_hdr);
+        uint32_t temp_ip = curr_packet_ip_hdr->ip_dst;
+        memcpy(&(curr_packet_ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src));
+        memcpy(&(curr_packet_ip_hdr->ip_src), &(temp_ip), sizeof(temp_ip));
+        curr_packet_ip_hdr->ip_sum = 0;
+        curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
+
+        curr_packet_icmp_hdr->icmp_code = 0;
+        curr_packet_icmp_hdr->icmp_type = 0;
+        curr_packet_icmp_hdr->icmp_sum = 0;
+        curr_packet_icmp_hdr->icmp_sum = cksum(curr_packet_icmp_hdr, ntohs(curr_packet_ip_hdr->ip_len) - sizeof(struct sr_ip_hdr));
 
         /*END Echo reply construction*/
 
-        free(matching_entry);
+        /* free(matching_entry);*/
+        /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
+        struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), best_match->s_addr);
+        if (!matching_entry){
+          /*No matching ARP entry, need to add a request and queue the packet*/
+          sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
+          return;
+        }
+        /*If we got here, we can send the packet!*/
+        sr_send_packet(sr, packet, len, iface);
         return;
       }
+      /*If we get here, we need to forward a packet*/
       /*longest prefix match in routing table*/
       struct in_addr* best_match = sr_lpm(sr, curr_packet_ip_hdr->ip_dst);
       if (!best_match){
@@ -327,14 +290,13 @@ void sr_handlepacket(struct sr_instance* sr,
       }
       /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
       struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), best_match->s_addr);
+      /*TODO: rewrite packet ethernet header to be correct source and dest mac*/
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
-        /*TODO: rewrite packet ethernet header to be correct source and dest mac*/
         sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
         return;
       }
-      /*If we got here, we can forward the packet!*/
-     
+      sr_send_packet(sr, packet, len, iface);
       free(matching_entry);
     }
   }
