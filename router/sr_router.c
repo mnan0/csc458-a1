@@ -271,7 +271,7 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_off = IP_DF; /* if this causes problems, try IP_RF*/
         ip_hdr->ip_ttl = INIT_TTL;
         ip_hdr->ip_p = ip_protocol_icmp;
-        ip_hdr->ip_hl = 4;
+        ip_hdr->ip_hl = 5;
         ip_hdr->ip_v = 4;
         ip_hdr->ip_sum = 0;
         ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl*4);
