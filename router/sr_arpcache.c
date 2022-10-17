@@ -102,11 +102,11 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 
                 /* Set up ARP header */
                 struct sr_arp_hdr* arp_hdr = malloc(sizeof(struct sr_arp_hdr));
-                arp_hdr->ar_hrd = arp_hrd_ethernet;
-                arp_hdr->ar_pro = ethertype_ip;
+                arp_hdr->ar_hrd = htons(arp_hrd_ethernet);
+                arp_hdr->ar_pro = htons(ethertype_ip);
                 arp_hdr->ar_hln = sizeof(curr_if->addr);
                 arp_hdr->ar_pln = sizeof(curr_if->ip);
-                arp_hdr->ar_op = arp_op_request;
+                arp_hdr->ar_op = htons(arp_op_request);
                 memcpy(arp_hdr->ar_sha,curr_if->addr,sizeof(curr_if->addr));
                 /*arp_hdr.ar_tha = NULL;*/
                 memcpy(&(arp_hdr->ar_sip),&(curr_if->ip),sizeof(uint32_t));
