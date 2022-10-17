@@ -268,7 +268,7 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_tos = 0;
         ip_hdr->ip_len = htons(sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
         ip_hdr->ip_id = 0;
-        ip_hdr->ip_off = IP_DF; /* if this causes problems, try IP_RF*/
+        ip_hdr->ip_off = htons(IP_DF); /* if this causes problems, try IP_RF*/
         ip_hdr->ip_ttl = INIT_TTL;
         ip_hdr->ip_p = ip_protocol_icmp;
         ip_hdr->ip_hl = 5;
@@ -282,7 +282,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_icmp_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_hdr));
         icmp_hdr->icmp_type = 0;
         icmp_hdr->icmp_code = 0;
-        icmp_hdr->icmp_sum = 0;
+        icmp_hdr->ic-mp_sum = 0;
         uint16_t test1 = ntohs(ip_hdr->ip_len);
         uint16_t test2 = (ip_hdr->ip_hl * 4);
         icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
