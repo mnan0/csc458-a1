@@ -225,7 +225,7 @@ void sr_handlepacket(struct sr_instance* sr,
         return;
       }
       /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
-      struct sr_arpentry * matching_entry = sr_arpcache_lookup(sr->cache, best_match->s_addr);
+      /*struct sr_arpentry * matching_entry = sr_arpcache_lookup(sr->cache, best_match->s_addr);*/
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
 
