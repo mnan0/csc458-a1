@@ -280,7 +280,7 @@ void sr_handlepacket(struct sr_instance* sr,
         icmp_hdr->next_mtu = 1500;
 
         memcpy(icmp_hdr->data, ip_hdr, sizeof(struct sr_ip_hdr));
-        memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), curr_packet_ip_hdr + sizeof(struct sr_ip_hdr), 8);
+        memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), packet + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), 8);
         icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
         
         /*Construct buf and send packet*/
