@@ -324,7 +324,7 @@ void sr_handlepacket(struct sr_instance* sr,
         /*Set up IP header*/
         struct sr_ip_hdr* ip_hdr = malloc(sizeof(struct sr_ip_hdr));
         ip_hdr->ip_tos = 0;
-        ip_hdr->ip_len = htons(sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
+        ip_hdr->ip_len = htons(sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
         ip_hdr->ip_id = 0;
         ip_hdr->ip_off = htons(IP_DF); /* if this causes problems, try IP_RF*/
         ip_hdr->ip_ttl = INIT_TTL;
@@ -337,7 +337,7 @@ void sr_handlepacket(struct sr_instance* sr,
         memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
 
         /*Set up ICMP header*/
-        struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_hdr));
+        struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_t3_hdr));
         icmp_hdr->icmp_type = 3;
         icmp_hdr->icmp_code = 3;
         icmp_hdr->icmp_sum = 0;
@@ -348,16 +348,16 @@ void sr_handlepacket(struct sr_instance* sr,
         icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
         
         /*Construct buf and send packet*/
-        uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr));
+        uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
         memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
         memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
-        memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_hdr));
+        memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_t3_hdr));
         
         /*Check if we need to either send or add to queue*/
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
+          struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
           free(ip_hdr);
@@ -366,7 +366,7 @@ void sr_handlepacket(struct sr_instance* sr,
           return;
         }
   
-        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
+        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
         /* Free memory */
         free(ethernet_hdr);
         free(ip_hdr);
