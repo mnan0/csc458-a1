@@ -59,6 +59,8 @@ int sr_read_from_server(struct sr_instance* );
 /* -- sr_router.c -- */
 void sr_init(struct sr_instance* );
 void sr_handlepacket(struct sr_instance* , uint8_t * , unsigned int , char* );
+struct in_addr * sr_lpm(struct sr_instance * sr, uint32_t ip_dst);
+struct sr_if * get_if_list_for_rt_ip(struct sr_instance * sr, unsigned long rt_ip);
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );
