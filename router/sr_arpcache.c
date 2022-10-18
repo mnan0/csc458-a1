@@ -123,7 +123,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             free(arp_hdr);
 
             /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
-            sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr),curr_if->name);
+            sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr),dest_interface->name);
 
             /* Free memory */
             free(buf);
