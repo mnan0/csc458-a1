@@ -325,8 +325,16 @@ void sr_handlepacket(struct sr_instance* sr,
       curr_packet_ip_hdr->ip_ttl--;
       curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
-      /*Check if ICMP Echo request for us, and if so, checksum the ICMP header and send a reply*/
-      if (curr_packet_ip_hdr->ip_p == ip_protocol_icmp && curr_packet_ip_hdr->ip_dst == input_interface->ip){
+      /*Check if ICMP Echo request for us (is it for one of the router interfaces), checksum the ICMP header and send a reply*/
+      int dest_is_router_interface = 0;
+      struct sr_if * current_router_interface = sr->if_list;
+      while (current_router_interface != NULL){
+        if (current_router_interface->ip == curr_packet_ip_hdr->ip_dst){
+          dest_is_router_interface = 1;
+        }
+        current_router_interface = current_router_interface->next;
+      }
+      if (curr_packet_ip_hdr->ip_p == ip_protocol_icmp && dest_is_router_interface==1/*&& curr_packet_ip_hdr->ip_dst == input_interface->ip*/){
         /*Incoming ICMP request destined for the router*/
         /*Checksum the ICMP and check that the request is an echo request*/
         struct sr_icmp_hdr* curr_packet_icmp_hdr = (struct sr_icmp_hdr*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
