@@ -459,7 +459,7 @@ void sr_handlepacket(struct sr_instance* sr,
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
         printf("Adding an ARP request to ");
-        print_addr_ip_int(*best_match);
+        print_addr_ip(*best_match);
         printf("\n");
         sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
         return;
