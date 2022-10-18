@@ -292,6 +292,9 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
+          printf("Adding an ARP request to ");
+          print_addr_ip_int(ip_hdr->ip_dst);
+          print("\n");
           struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
