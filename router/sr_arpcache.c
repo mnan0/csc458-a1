@@ -127,7 +127,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
 
             /* Free memory */
             free(buf);
-            curr_if = curr_if->next;
+            
             
             
 
