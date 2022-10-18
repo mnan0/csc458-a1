@@ -159,7 +159,7 @@ void sr_handlepacket(struct sr_instance* sr,
       /*ARP Request, need to create a reply and send packet*/
       if (arp_target_ip == input_interface->ip){
         /*This request is for us, send a reply*/
-          printf("INCOMING ARP REQUEST PACKET FOR US!\n");
+         /* printf("INCOMING ARP REQUEST PACKET FOR US!\n");*/
          /* Set up ethernet header */
           struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
           memcpy(ethernet_hdr->ether_dhost, curr_packet_arp_hdr->ar_sha, sizeof(curr_packet_arp_hdr->ar_sha));
@@ -201,14 +201,14 @@ void sr_handlepacket(struct sr_instance* sr,
       
       struct sr_if* input_interface = sr_get_interface(sr, interface);
       if (arp_target_ip == input_interface->ip){
-        printf("INCOMING ARP REPLY PACKET FOR US!\n");
+        /*printf("INCOMING ARP REPLY PACKET FOR US!\n");*/
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         if (arpreq_for_currip){
           /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           while (curr_packet != NULL){
-            printf("SENDING PACKET FROM REQ QUEUE!\n");
+            /*printf("SENDING PACKET FROM REQ QUEUE!\n");*/
             struct sr_arpentry* cache_entry = sr_arpcache_lookup(&(sr->cache), arpreq_for_currip->ip);
             /*Need to change the MAC address on the packet before sending*/
             curr_packet_eth_hdr = (struct sr_eth_hdr*) curr_packet->buf;
@@ -239,10 +239,13 @@ void sr_handlepacket(struct sr_instance* sr,
   /*-----------------------------------------IP/ICMP PACKET HANDLING----------------------------------*/
   else if (ether_type == ethertype_ip){
     /*Incoming packet is an IP packet*/
-    printf("INCOMING IP PACKET!\n");
+    /*printf("INCOMING IP PACKET!\n");*/
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
-    if (curr_packet_ip_hdr->ip_ttl <= 1){
+    if (curr_packet_ip_hdr->ip_ttl == 0){
+      return;
+    }
+    if (curr_packet_ip_hdr->ip_ttl == 1){
       /*TODO: Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
@@ -278,9 +281,9 @@ void sr_handlepacket(struct sr_instance* sr,
         icmp_hdr->icmp_sum = 0;
         icmp_hdr->unused = 0;
         icmp_hdr->next_mtu = 1500;
-        memcpy(icmp_hdr->data, ip_hdr, sizeof(struct sr_ip_hdr));
 
-        memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), curr_packet_ip_hdr + sizeof(struct sr_ip_hdr), 8);
+        memcpy(icmp_hdr->data,  (uint8_t*) curr_packet_ip_hdr, sizeof(struct sr_ip_hdr));
+        memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), (uint8_t*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), 8);
         icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
         
         /*Construct buf and send packet*/
@@ -293,9 +296,9 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          printf("Adding an ARP request to ");
+          /*printf("Adding an ARP request to ");
           print_addr_ip_int(ip_hdr->ip_dst);
-          printf("\n");
+          printf("\n");*/
           struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
@@ -304,7 +307,7 @@ void sr_handlepacket(struct sr_instance* sr,
           free(buf);
           return;
         }
-        /*sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);*/
+        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
         /* Free memory */
         free(ethernet_hdr);
         free(ip_hdr);
@@ -361,9 +364,9 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), curr_packet_ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          printf("Adding an ARP request to ");
+          /*printf("Adding an ARP request to ");
           print_addr_ip_int(curr_packet_ip_hdr->ip_dst);
-          printf("\n");
+          printf("\n");*/
           sr_arpcache_queuereq(&(sr->cache), curr_packet_ip_hdr->ip_dst, packet, len, interface);
           return;
         }
@@ -425,9 +428,9 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          printf("Adding an ARP request to ");
+          /*printf("Adding an ARP request to ");
           print_addr_ip_int(ip_hdr->ip_dst);
-          printf("\n");
+          printf("\n");*/
           struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
@@ -459,9 +462,9 @@ void sr_handlepacket(struct sr_instance* sr,
 
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
-        printf("Adding an ARP request to ");
+        /*printf("Adding an ARP request to ");
         print_addr_ip(*best_match);
-        printf("\n");
+        printf("\n");*/
         sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
         return;
       }
