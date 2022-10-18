@@ -359,19 +359,19 @@ void sr_handlepacket(struct sr_instance* sr,
           /*No matching ARP entry, need to add a request and queue the packet*/
           struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
            /* Free memory */
-          free(buf);
           free(ethernet_hdr);
           free(ip_hdr);
           free(icmp_hdr);
+          free(buf);
           return;
         }
   
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_hdr), interface);
         /* Free memory */
-        free(buf);
         free(ethernet_hdr);
         free(ip_hdr);
         free(icmp_hdr);
+        free(buf);
         return;
       }
       
