@@ -242,7 +242,10 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("INCOMING IP PACKET!\n");
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
-    if (curr_packet_ip_hdr->ip_ttl <= 1){
+    if (curr_packet_ip_hdr->ip_ttl == 0){
+      return;
+    }
+    if (curr_packet_ip_hdr->ip_ttl == 1){
       /*TODO: Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
