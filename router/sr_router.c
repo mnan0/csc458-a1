@@ -303,7 +303,7 @@ void sr_handlepacket(struct sr_instance* sr,
           free(buf);
           return;
         }
-        sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
+        /*sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);*/
         /* Free memory */
         free(ethernet_hdr);
         free(ip_hdr);
