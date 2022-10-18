@@ -266,7 +266,7 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_len = htons(sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
         ip_hdr->ip_id = 0;
         ip_hdr->ip_off = htons(IP_DF); /* if this causes problems, try IP_RF*/
-        ip_hdr->ip_ttl = INIT_TTL;
+        ip_hdr->ip_ttl = 100;
         ip_hdr->ip_p = ip_protocol_icmp;
         ip_hdr->ip_hl = 5;
         ip_hdr->ip_v = 4;
