@@ -31,6 +31,10 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 
 void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
     time_t now = time(0);
+
+    time_t now1;
+    time(&now1);
+    
     if (difftime(now, req->sent) >= 1.0){
         if (req->times_sent >= 5){
             /*Loop through each packet in req and send an icmp type */
