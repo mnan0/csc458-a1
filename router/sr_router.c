@@ -187,7 +187,7 @@ void sr_handlepacket(struct sr_instance* sr,
           free(buf);
       }
       else {
-        perror("ARP Request not sent to correct router interface ip");
+        printf("ARP Request not sent to correct router interface ip");
       }
 
     }
@@ -205,7 +205,7 @@ void sr_handlepacket(struct sr_instance* sr,
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           struct sr_arpentry* cache_entry = sr_arpcache_lookup(&(sr->cache), arpreq_for_currip->ip);
           if (!cache_entry){
-            perror("No cache entry for request that was supposed to have just been inserted");
+            printf("No cache entry for request that was supposed to have just been inserted");
           }
           while (curr_packet != NULL){
             /*printf("SENDING PACKET FROM REQ QUEUE!\n");*/
@@ -223,16 +223,16 @@ void sr_handlepacket(struct sr_instance* sr,
           sr_arpreq_destroy(&(sr->cache), arpreq_for_currip);
         }
         else{
-          perror("Router received ARP reply without asking for it.\n");
+          printf("Router received ARP reply without asking for it.\n");
         }
       }
       else {
-        perror("ARP Reply not sent to correct router interface ip");
+        printf("ARP Reply not sent to correct router interface ip");
       }      
     }
 
     else {
-      perror("ARP packet recieved but opcode isn't request or reply");
+      printf("ARP packet recieved but opcode isn't request or reply");
     }
 
   }
@@ -263,7 +263,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
 
         if (new_source == 0){
-            perror("Packet interface not recognized by routing table.");
+            printf("Packet interface not recognized by routing table.");
         }
         /*Unpack packet buf to get dhost from ethernet frame*/
 
@@ -407,7 +407,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
 
         if (new_source == 0){
-            perror("Packet interface not recognized by routing table.");
+            printf("Packet interface not recognized by routing table.");
         }
         /*Unpack packet buf to get dhost from ethernet frame*/
 
@@ -486,7 +486,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
 
         if (new_source == 0){
-            perror("Packet interface not recognized by routing table.");
+            printf("Packet interface not recognized by routing table.");
         }
         /*Unpack packet buf to get dhost from ethernet frame*/
 
@@ -574,7 +574,7 @@ void sr_handlepacket(struct sr_instance* sr,
   }
 
   else {
-    perror("Incoming packet is neither ethertype ARP nor IP");
+    printf("Incoming packet is neither ethertype ARP nor IP");
   }
 
 }/* end sr_ForwardPacket */
