@@ -34,7 +34,6 @@ void sr_init(struct sr_instance* sr)
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
         
     struct sr_rt* next_node = sr->routing_table;
-    uint8_t* empty_packet=NULL;
     while (next_node != NULL){
       /* TODO: Note: necessary to queue at beginning? */
       /*struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), next_node->dest.s_addr, empty_packet, 0, next_node->interface);*/
@@ -64,8 +63,6 @@ Helper function to calculate longest prefix match
 Returns the IP address in the routing table that most closely matches the given IP
 */
 struct in_addr * sr_lpm(struct sr_instance * sr,uint32_t ip_dst){
-  int max=0;
-  int num_matching_bits=0;
   struct sr_rt * curr_rt = sr->routing_table;
   uint32_t masked=0;
   while (curr_rt != NULL){
@@ -350,7 +347,6 @@ void sr_handlepacket(struct sr_instance* sr,
           return;
         }
         /*Check if reply destination in ARP cache, otherwise set up ARP request and store packet*/
-        uint32_t echo_reply_dest = curr_packet_ip_hdr->ip_src;
         
         /*Send the echo reply*/
 
@@ -360,7 +356,8 @@ void sr_handlepacket(struct sr_instance* sr,
         
         uint32_t temp_ip = curr_packet_ip_hdr->ip_dst;
         memcpy(&(curr_packet_ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src));
-        memcpy(&(curr_packet_ip_hdr->ip_src), &(temp_ip), sizeof(temp_ip));
+        memcpy(&(curr_packet_ip_hdr->ip_src), &(new_source->ip), sizeof(uint32_t));
+        /* TODO: Peter check line above*/
         curr_packet_ip_hdr->ip_sum = 0;
         curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
