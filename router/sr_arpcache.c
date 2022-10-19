@@ -73,7 +73,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 icmp_hdr->unused = 0;
                 icmp_hdr->next_mtu = 1500;
                 memcpy(icmp_hdr->data, curr_packet_ip_hdr, sizeof(struct sr_ip_hdr));
-                memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), curr_packet  + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), 8);
+                memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), curr_packet  + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), ICMP_DATA_SIZE - sizeof(struct sr_ip_hdr));
                 icmp_hdr->icmp_sum = 0;
                 icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
 
