@@ -45,8 +45,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 
                 /*Destination of the existing hdr should be the new source interface mac*/
                 /*struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);*/
-                struct in_addr * lpm_ip = sr_lpm(sr,curr_packet_ip_hdr->ip_src);
-                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, lpm_ip->s_addr);
+                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
                 
                 if (!outgoing_if){
                     perror("Could not find packet's incoming interface.");
