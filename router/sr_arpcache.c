@@ -131,10 +131,6 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             free(arp_hdr);
             free(buf);
 
-            
-            
-            
-
             req->sent = now;
             req->times_sent++;
         }
