@@ -248,7 +248,7 @@ void sr_handlepacket(struct sr_instance* sr,
     if (curr_packet_ip_hdr->ip_ttl == 1){
       /*TODO: Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
-        curr_packet_ip_hdr->ip_ttl--;
+        /*curr_packet_ip_hdr->ip_ttl--;*/
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
         struct sr_if* new_source = sr_get_interface(sr, interface);
         if (new_source == 0){
@@ -282,6 +282,7 @@ void sr_handlepacket(struct sr_instance* sr,
         icmp_hdr->icmp_sum = 0;
         icmp_hdr->unused = 0;
         icmp_hdr->next_mtu = 1500;
+
 
         memcpy(icmp_hdr->data,  (uint8_t*) curr_packet_ip_hdr, sizeof(struct sr_ip_hdr));
         memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), (uint8_t*) (packet + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), 8);
