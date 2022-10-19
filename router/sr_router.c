@@ -211,7 +211,7 @@ void sr_handlepacket(struct sr_instance* sr,
             /*printf("SENDING PACKET FROM REQ QUEUE!\n");*/
             /*Need to change the MAC address on the packet before sending*/
             curr_packet_eth_hdr = (struct sr_ethernet_hdr*) curr_packet->buf;
-            struct sr_if* output_interface = sr_get_interface(curr_packet->iface);
+            struct sr_if* output_interface = sr_get_interface(sr, curr_packet->iface);
             memcpy(curr_packet_eth_hdr->ether_dhost, cache_entry->mac , sizeof( cache_entry->mac));
             memcpy(curr_packet_eth_hdr->ether_shost, output_interface->addr, sizeof(output_interface->addr));
 
