@@ -44,9 +44,9 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
                 
                 /*Destination of the existing hdr should be the new source interface mac*/
-                /*struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);*/
-                struct in_addr * lpm_ip = sr_lpm(sr,curr_packet_ip_hdr->ip_src);
-                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, lpm_ip->s_addr);
+                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
+                /*struct in_addr * lpm_ip = sr_lpm(sr,curr_packet_ip_hdr->ip_src);
+                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, lpm_ip->s_addr);*/
                 
                 if (!outgoing_if){
                     perror("Could not find packet's incoming interface.");
@@ -69,8 +69,8 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 ip_hdr->ip_p = ip_protocol_icmp;
                 ip_hdr->ip_hl = sizeof(struct sr_ip_hdr) / 4;
                 ip_hdr->ip_v = 4;   
-                /* memcpy(&(ip_hdr->ip_src), &(curr_packet_ip_hdr->ip_dst), sizeof(curr_packet_ip_hdr->ip_dst));*/
-                memcpy(&(ip_hdr->ip_src), &(outgoing_if->ip), sizeof(outgoing_if->ip));
+                memcpy(&(ip_hdr->ip_src), &(curr_packet_ip_hdr->ip_dst), sizeof(curr_packet_ip_hdr->ip_dst));
+                /*memcpy(&(ip_hdr->ip_src), &(outgoing_if->ip), sizeof(outgoing_if->ip));*/
                 memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
                 ip_hdr->ip_sum=0;
                 ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
