@@ -43,7 +43,7 @@ void sr_init(struct sr_instance* sr)
     }
 } /* -- sr_init -- */
 
-/** 
+/* 
 Converts decimal to binary
 From https://stackoverflow.com/questions/15114140/writing-binary-number-system-in-c-code
 // static inline unsigned long long S_to_binary_(const char *s)
@@ -55,7 +55,6 @@ From https://stackoverflow.com/questions/15114140/writing-binary-number-system-i
 //         }
 //         return i;
 // }
-/***s
 Method: sr_lpm()
 Scope: local
 
@@ -85,9 +84,9 @@ struct sr_if * get_if_list_for_rt_ip(struct sr_instance * sr, unsigned long rt_i
       return sr_get_interface(sr,curr_rt->interface);
       
     }
-    
     curr_rt = curr_rt->next;
   }
+  return NULL;
 }
 
 /*---------------------------------------------------------------------
@@ -299,7 +298,7 @@ void sr_handlepacket(struct sr_instance* sr,
           /*printf("Adding an ARP request to ");
           print_addr_ip_int(ip_hdr->ip_dst);
           printf("\n");*/
-          struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
+          sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
           free(ip_hdr);
@@ -440,7 +439,7 @@ void sr_handlepacket(struct sr_instance* sr,
           /*printf("Adding an ARP request to ");
           print_addr_ip_int(ip_hdr->ip_dst);
           printf("\n");*/
-          struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
+          sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
           free(ip_hdr);
@@ -520,7 +519,7 @@ void sr_handlepacket(struct sr_instance* sr,
           /*printf("Adding an ARP request to ");
           print_addr_ip_int(ip_hdr->ip_dst);
           printf("\n");*/
-          struct sr_arpreq * return_req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
+          sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
           free(ip_hdr);
