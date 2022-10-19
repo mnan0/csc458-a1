@@ -268,10 +268,10 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_off = htons(IP_DF); /* if this causes problems, try IP_RF*/
         ip_hdr->ip_ttl = 100;
         ip_hdr->ip_p = ip_protocol_icmp;
-        ip_hdr->ip_hl = htons(5);
+        ip_hdr->ip_hl = 5;
         ip_hdr->ip_v = 4;
         ip_hdr->ip_sum = 0;
-        ip_hdr->ip_sum = cksum(ip_hdr, ntohs(ip_hdr->ip_hl)*4);
+        ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl*4);
         memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
         memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
 
