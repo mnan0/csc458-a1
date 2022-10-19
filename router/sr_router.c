@@ -218,6 +218,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
             print_hdrs(curr_packet->buf,sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr)+sizeof(struct sr_icmp_hdr));
             sr_send_packet(sr, curr_packet->buf, curr_packet->len, output_interface->name);
+            free(cache_entry);
             curr_packet = curr_packet->next;
           }
           sr_arpreq_destroy(&(sr->cache), arpreq_for_currip);
@@ -311,6 +312,7 @@ void sr_handlepacket(struct sr_instance* sr,
         }
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
         /* Free memory */
+        free(matching_entry);
         free(ethernet_hdr);
         free(ip_hdr);
         free(icmp_hdr);
@@ -382,6 +384,7 @@ void sr_handlepacket(struct sr_instance* sr,
         }
         /*If we got here, we can send the packet!*/
         sr_send_packet(sr, packet, len, interface);
+        free(matching_entry);
         return;
       }
       /*END ECHO REPLY CONSTRUCTION*/
@@ -450,8 +453,10 @@ void sr_handlepacket(struct sr_instance* sr,
           return;
         }
   
+
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
         /* Free memory */
+        free(matching_entry);
         free(ethernet_hdr);
         free(ip_hdr);
         free(icmp_hdr);
@@ -529,6 +534,7 @@ void sr_handlepacket(struct sr_instance* sr,
         }
         sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
         /* Free memory */
+        free(matching_entry);
         free(ethernet_hdr);
         free(ip_hdr);
         free(icmp_hdr);
