@@ -72,7 +72,8 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - ip_hdr->ip_hl * 4); 
                 icmp_hdr->unused = 0;
                 icmp_hdr->next_mtu = 1500;
-                memcpy(icmp_hdr->data,curr_packet_ip_hdr,ICMP_DATA_SIZE);
+                memcpy(icmp_hdr->data, curr_packet_ip_hdr, sizeof(struct sr_ip_hdr));
+                memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), curr_packet  + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), 8);
                 
                 /*Construct buf and send packet*/
                 uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
