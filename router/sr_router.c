@@ -399,7 +399,7 @@ void sr_handlepacket(struct sr_instance* sr,
       /*END ECHO REPLY CONSTRUCTION*/
 
       /*ICMP TYPE 3 CODE 3 CONSTRUCTION*/
-      else if (curr_packet_ip_hdr->ip_dst == input_interface->ip && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) {
+      else if (/*curr_packet_ip_hdr->ip_dst == input_interface->ip*/ dest_is_router_interface==1 && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) {
         /*TODO: TCP/UDP addressed to us, we need to send ICMP type 3 code 3*/
 
         /* Set up ethernet header */
