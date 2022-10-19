@@ -356,8 +356,7 @@ void sr_handlepacket(struct sr_instance* sr,
         
         uint32_t temp_ip = curr_packet_ip_hdr->ip_dst;
         memcpy(&(curr_packet_ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src));
-        memcpy(&(curr_packet_ip_hdr->ip_src), &(new_source->ip), sizeof(uint32_t));
-        /* TODO: Peter check line above*/
+        memcpy(&(curr_packet_ip_hdr->ip_src), &(temp_ip), sizeof(temp_ip));
         curr_packet_ip_hdr->ip_sum = 0;
         curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
