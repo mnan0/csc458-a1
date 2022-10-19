@@ -181,13 +181,13 @@ void sr_handlepacket(struct sr_instance* sr,
           uint8_t* buf = malloc(sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));
           memcpy(buf, ethernet_hdr, sizeof(*ethernet_hdr));
           memcpy(buf + sizeof(*ethernet_hdr), arp_hdr, sizeof(*arp_hdr));
-          free(ethernet_hdr);
-          free(arp_hdr);
-
+          
           /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
           sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr), input_interface->name);
           /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
           /* Free memory */
+          free(ethernet_hdr);
+          free(arp_hdr);
           free(buf);
       }
       else {
