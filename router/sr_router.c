@@ -269,7 +269,7 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_ttl = 100;
         ip_hdr->ip_p = ip_protocol_icmp;
         ip_hdr->ip_hl = htons(5);
-        ip_hdr->ip_v = htons(4);
+        ip_hdr->ip_v = 4;
         ip_hdr->ip_sum = 0;
         ip_hdr->ip_sum = cksum(ip_hdr, ntohs(ip_hdr->ip_hl)*4);
         memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
