@@ -38,22 +38,23 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             struct sr_packet* curr_packet = req->packets;
             while (curr_packet != NULL){
                 /*TODO: Test the if functionality*/
+      
+                /*Unpack packet buf to get dhost from ethernet frame*/
+                struct sr_ethernet_hdr* curr_packet_eth_hdr = (struct sr_ethernet_hdr*) (curr_packet->buf);
+                struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
+                
+                /*Destination of the existing hdr should be the new source interface mac*/
+                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
+
+                if (!outgoing_if){
+                    perror("Could not find packet's incoming interface.");
+                }
+                
                 /* Set up ethernet header */
                 struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
 
-                struct sr_ethernet_hdr* existing_ethernet_hdr = (struct sr_ethernet_hdr*) (curr_packet->buf);
-                /*Destination of the existing hdr should be the new source interface mac*/
-                uint8_t new_source_addr[6] = existing_ethernet_hdr->ether_dhost;
-                if (!new_source_addr){
-                    perror("Could not find packet's incoming interface.");
-                }
-                /*Unpack packet buf to get dhost from ethernet frame*/
-                struct sr_ethernet_hdr* curr_packet_eth_hdr = (struct sr_ethernet_hdr*) curr_packet->buf;
-                struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
-
-
                 memcpy(ethernet_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
-                memcpy(ethernet_hdr->ether_shost, new_source_addr, sizeof(new_source_addr));
+                memcpy(ethernet_hdr->ether_shost, outgoing_if->addr, sizeof(outgoing_if->addr));
                 ethernet_hdr->ether_type = htons(ethertype_ip);
 
                 /*Set up IP header*/
@@ -89,7 +90,6 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 memcpy(buf, ethernet_hdr, sizeof(struct sr_ethernet_hdr));
                 memcpy(buf + sizeof(struct sr_ethernet_hdr), ip_hdr, sizeof(struct sr_ip_hdr));
                 memcpy(buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), icmp_hdr, sizeof(struct sr_icmp_t3_hdr));
-                struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
                 sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), outgoing_if->name);
 
                 /* Free memory */
