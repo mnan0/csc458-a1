@@ -75,7 +75,7 @@ struct in_addr * sr_lpm(struct sr_instance * sr,uint32_t ip_dst){
   return NULL;
 }
 /*
-Loop over the routing table, find the rt matching rt_ip, then return the ip's interface list instance
+Loop over the routing table, find the rt with destination matching rt_ip, then return the ip's interface list instance
 */
 struct sr_if * get_if_list_for_rt_ip(struct sr_instance * sr, unsigned long rt_ip){
   struct sr_rt * curr_rt = sr->routing_table;
@@ -245,7 +245,17 @@ void sr_handlepacket(struct sr_instance* sr,
     if (curr_packet_ip_hdr->ip_ttl == 0){
       return;
     }
-    if (curr_packet_ip_hdr->ip_ttl == 1 && !(curr_packet_ip_hdr->ip_dst == input_interface->ip && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17))){
+    /* If the ttl is 1 AND the destination IP is not part of this router's if list, then send type 11*/
+    int dest_is_router_interface = 0;
+    struct sr_if * current_router_interface = sr->if_list;
+    while (current_router_interface != NULL){
+      if (current_router_interface->ip == curr_packet_ip_hdr->ip_dst){
+        dest_is_router_interface = 1;
+      }
+      current_router_interface = current_router_interface->next;
+    }
+    if (curr_packet_ip_hdr->ip_ttl == 1 && 
+    ((dest_is_router_interface==0 && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) || (curr_packet_ip_hdr->ip_p!=6 && curr_packet_ip_hdr->ip_p!=17))){
       /*TODO: Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
         /*curr_packet_ip_hdr->ip_ttl--;*/
@@ -329,14 +339,14 @@ void sr_handlepacket(struct sr_instance* sr,
       curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
       /*Check if ICMP Echo request for us (is it for one of the router interfaces), checksum the ICMP header and send a reply*/
-      int dest_is_router_interface = 0;
+      /*int dest_is_router_interface = 0;
       struct sr_if * current_router_interface = sr->if_list;
       while (current_router_interface != NULL){
         if (current_router_interface->ip == curr_packet_ip_hdr->ip_dst){
           dest_is_router_interface = 1;
         }
         current_router_interface = current_router_interface->next;
-      }
+      }*/
       if (curr_packet_ip_hdr->ip_p == ip_protocol_icmp && dest_is_router_interface==1/*&& curr_packet_ip_hdr->ip_dst == input_interface->ip*/){
         /*Incoming ICMP request destined for the router*/
         /*Checksum the ICMP and check that the request is an echo request*/
