@@ -203,20 +203,23 @@ void sr_handlepacket(struct sr_instance* sr,
         if (arpreq_for_currip){
           /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
+          struct sr_arpentry* cache_entry = sr_arpcache_lookup(&(sr->cache), arpreq_for_currip->ip);
+          if (!cache_entry){
+            perror("No cache entry for request that was supposed to have just been inserted");
+          }
           while (curr_packet != NULL){
             /*printf("SENDING PACKET FROM REQ QUEUE!\n");*/
-            struct sr_arpentry* cache_entry = sr_arpcache_lookup(&(sr->cache), arpreq_for_currip->ip);
             /*Need to change the MAC address on the packet before sending*/
             curr_packet_eth_hdr = (struct sr_ethernet_hdr*) curr_packet->buf;
-            struct sr_if* output_interface = get_if_list_for_rt_ip(sr, arpreq_for_currip->ip);
+            struct sr_if* output_interface = sr_get_interface(curr_packet->iface);
             memcpy(curr_packet_eth_hdr->ether_dhost, cache_entry->mac , sizeof( cache_entry->mac));
             memcpy(curr_packet_eth_hdr->ether_shost, output_interface->addr, sizeof(output_interface->addr));
 
             print_hdrs(curr_packet->buf,sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr)+sizeof(struct sr_icmp_hdr));
             sr_send_packet(sr, curr_packet->buf, curr_packet->len, output_interface->name);
-            free(cache_entry);
             curr_packet = curr_packet->next;
           }
+          free(cache_entry);
           sr_arpreq_destroy(&(sr->cache), arpreq_for_currip);
         }
         else{
@@ -537,19 +540,19 @@ void sr_handlepacket(struct sr_instance* sr,
       }
       /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
       struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), best_match->s_addr);
-
+      struct sr_if * outgoing_interface = get_if_list_for_rt_ip(sr,best_match->s_addr);
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
         /*printf("Adding an ARP request to ");
         print_addr_ip(*best_match);
         printf("\n");*/
-        sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, interface);
+        sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, outgoing_interface->name);
         return;
       }
        /*Rewrite packet ethernet header to be correct source and dest mac*/
 
       memcpy(curr_packet_eth_hdr->ether_dhost, matching_entry->mac, sizeof(matching_entry->mac));
-      struct sr_if * outgoing_interface = get_if_list_for_rt_ip(sr,best_match->s_addr);
+      
       memcpy(curr_packet_eth_hdr->ether_shost, outgoing_interface->addr, sizeof(outgoing_interface->addr));
       sr_send_packet(sr, packet, len, outgoing_interface->name);
       free(matching_entry);

@@ -32,9 +32,6 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
     time_t now = time(0);
 
-    time_t now1;
-    time(&now1);
-    
     if (difftime(now, req->sent) >= 1.0){
         if (req->times_sent >= 5){
             /*Loop through each packet in req and send an icmp type */
@@ -108,6 +105,8 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             /*struct sr_if *curr_if = sr->if_list;*/
             struct in_addr * closest_ip = sr_lpm(sr,req->ip);
             struct sr_if * dest_interface = get_if_list_for_rt_ip(sr, closest_ip->s_addr);
+
+            struct sr_if* test_interface = sr_get_interface(sr, req->packet)
             /* Set up ethernet header */
             struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
             uint8_t broadcast_mac[ETHER_ADDR_LEN] = {255,255,255,255,255,255};
