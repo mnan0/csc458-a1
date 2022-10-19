@@ -95,10 +95,11 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), outgoing_if->name);
 
                 /* Free memory */
-                free(buf);
+                
                 free(ethernet_hdr);
                 free(ip_hdr);
                 free(icmp_hdr);
+                free(buf);
 
 
                 curr_packet = curr_packet->next;
