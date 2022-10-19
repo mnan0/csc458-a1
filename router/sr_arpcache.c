@@ -19,9 +19,12 @@
 */
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
     struct sr_arpreq *curr_req = sr->cache.requests;
+    struct sr_arpreq *next_req = NULL;
     while(curr_req != NULL){
+        /*It's possible curr_req will be destroyed in handle_arprequest and therefore we need to keep a ref to next*/
+        next_req = curr_req->next;
         handle_arprequest(sr, curr_req);
-        curr_req = curr_req->next;
+        curr_req = next_req;
     }
 
 }
