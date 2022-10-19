@@ -464,7 +464,7 @@ void sr_handlepacket(struct sr_instance* sr,
       /*longest prefix match in routing table*/
       struct in_addr* best_match = sr_lpm(sr, curr_packet_ip_hdr->ip_dst);
       if (!best_match){
-        /*No best match, need to send destination host unreachable ICMP type 3 code 1*/
+        /*No best match, need to send destination host unreachable ICMP type 3 code 0*/
         /* Set up ethernet header */
         /*curr_packet_ip_hdr->ip_ttl--;*/
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
@@ -497,7 +497,7 @@ void sr_handlepacket(struct sr_instance* sr,
         /*Set up ICMP header*/
         struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_t3_hdr));
         icmp_hdr->icmp_type = 3;
-        icmp_hdr->icmp_code = 1;
+        icmp_hdr->icmp_code = 0;
         icmp_hdr->icmp_sum = 0;
         icmp_hdr->unused = 0;
         icmp_hdr->next_mtu = 1500;

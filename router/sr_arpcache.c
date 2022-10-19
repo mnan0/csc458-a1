@@ -62,6 +62,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 ip_hdr->ip_v = 4;   
                 memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
                 memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
+                ip_hdr->ip_sum=0;
                 ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl * 4);
 
 
@@ -69,11 +70,13 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 struct sr_icmp_t3_hdr* icmp_hdr = malloc(sizeof(struct sr_icmp_t3_hdr));
                 icmp_hdr->icmp_type = 3;
                 icmp_hdr->icmp_code = 1;
-                icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_hdr->ip_len - ip_hdr->ip_hl * 4); 
                 icmp_hdr->unused = 0;
                 icmp_hdr->next_mtu = 1500;
                 memcpy(icmp_hdr->data, curr_packet_ip_hdr, sizeof(struct sr_ip_hdr));
                 memcpy(icmp_hdr->data + sizeof(struct sr_ip_hdr), curr_packet  + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr), 8);
+                icmp_hdr->icmp_sum = 0;
+                icmp_hdr->icmp_sum = cksum(icmp_hdr, ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4)); 
+
                 
                 /*Construct buf and send packet*/
                 uint8_t* buf = malloc(sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr));
