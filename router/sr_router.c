@@ -245,7 +245,7 @@ void sr_handlepacket(struct sr_instance* sr,
     if (curr_packet_ip_hdr->ip_ttl == 0){
       return;
     }
-    if (curr_packet_ip_hdr->ip_ttl == 1){
+    if (curr_packet_ip_hdr->ip_ttl == 1 && !(curr_packet_ip_hdr->ip_dst == input_interface->ip && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17))){
       /*TODO: Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
         /*curr_packet_ip_hdr->ip_ttl--;*/
