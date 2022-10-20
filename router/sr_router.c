@@ -576,7 +576,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   else {
     printf("Incoming packet is neither ethertype ARP nor IP");
-x }
+ }
 
 }/* end sr_ForwardPacket */
 
