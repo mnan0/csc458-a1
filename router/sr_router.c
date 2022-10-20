@@ -254,7 +254,11 @@ void sr_handlepacket(struct sr_instance* sr,
       }
       current_router_interface = current_router_interface->next;
     }
-    if (curr_packet_ip_hdr->ip_ttl == 1 && 
+
+  
+    int is_icmp_echo_for_router = (curr_packet_ip_hdr->ip_p == ip_protocol_icmp && dest_is_router_interface == 1);
+    
+    if (curr_packet_ip_hdr->ip_ttl == 1 && !is_icmp_echo_for_router &&
     ((dest_is_router_interface==0 && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) || (curr_packet_ip_hdr->ip_p!=6 && curr_packet_ip_hdr->ip_p!=17))){
       /*TODO: Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
