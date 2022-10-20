@@ -367,9 +367,9 @@ void sr_handlepacket(struct sr_instance* sr,
         memcpy(curr_packet_eth_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
         memcpy(curr_packet_eth_hdr->ether_shost, new_source->addr, sizeof(new_source->addr));
         
-        /*uint32_t temp_ip = curr_packet_ip_hdr->ip_dst;*/
+        uint32_t temp_ip = curr_packet_ip_hdr->ip_dst;
         memcpy(&(curr_packet_ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src));
-        memcpy(&(curr_packet_ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
+        memcpy(&(curr_packet_ip_hdr->ip_src), &(temp_ip), sizeof(new_source->ip));
         curr_packet_ip_hdr->ip_sum = 0;
         curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
