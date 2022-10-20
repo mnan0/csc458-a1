@@ -260,7 +260,8 @@ void sr_handlepacket(struct sr_instance* sr,
         /* Set up ethernet header */
         /*curr_packet_ip_hdr->ip_ttl--;*/
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
-        struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
+        
+        struct sr_if* new_source = sr_get_interface(sr, interface);
 
         if (new_source == 0){
             printf("Packet interface not recognized by routing table.");
@@ -362,8 +363,7 @@ void sr_handlepacket(struct sr_instance* sr,
         
         /*Send the echo reply*/
 
-        /*The new source ip/MAC should be whatever interface handles the packets source ip*/
-        struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
+        struct sr_if* new_source = sr_get_interface(sr, interface);
         memcpy(curr_packet_eth_hdr->ether_dhost, curr_packet_eth_hdr->ether_shost, sizeof(curr_packet_eth_hdr->ether_shost));
         memcpy(curr_packet_eth_hdr->ether_shost, new_source->addr, sizeof(new_source->addr));
         
@@ -404,7 +404,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
         /* Set up ethernet header */
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
-        struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
+        struct sr_if* new_source = sr_get_interface(sr, interface);
 
         if (new_source == 0){
             printf("Packet interface not recognized by routing table.");
@@ -426,7 +426,8 @@ void sr_handlepacket(struct sr_instance* sr,
         ip_hdr->ip_hl = sizeof(struct sr_ip_hdr) / 4;
         ip_hdr->ip_v = 4;
         ip_hdr->ip_sum = 0;
-        memcpy(&(ip_hdr->ip_src), &(new_source->ip), sizeof(new_source->ip));
+        /*Type 3 code 3 is the only time we should pass the destination IP pack as the source*/
+        memcpy(&(ip_hdr->ip_src), &(curr_packet_ip_hdr->ip_dst), sizeof(new_source->ip));
         memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src));
         ip_hdr->ip_sum = cksum(ip_hdr, ip_hdr->ip_hl*4); 
 
@@ -483,7 +484,7 @@ void sr_handlepacket(struct sr_instance* sr,
         /* Set up ethernet header */
         /*curr_packet_ip_hdr->ip_ttl--;*/
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
-        struct sr_if* new_source = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
+        struct sr_if* new_source = sr_get_interface(sr, interface);
 
         if (new_source == 0){
             printf("Packet interface not recognized by routing table.");
@@ -575,7 +576,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   else {
     printf("Incoming packet is neither ethertype ARP nor IP");
-  }
+x }
 
 }/* end sr_ForwardPacket */
 

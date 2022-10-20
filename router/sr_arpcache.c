@@ -48,7 +48,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
                 
                 if (!outgoing_if){
-                    perror("Could not find packet's incoming interface in the routing table.");
+                    perror("Could not find packet's incoming interface.");
                 }
                 
                 /* Set up ethernet header */
@@ -95,12 +95,10 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 sr_send_packet(sr, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), outgoing_if->name);
 
                 /* Free memory */
-                
                 free(ethernet_hdr);
                 free(ip_hdr);
                 free(icmp_hdr);
                 free(buf);
-
 
                 curr_packet = curr_packet->next;
             }
