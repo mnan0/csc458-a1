@@ -135,7 +135,7 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_arp_hdr* curr_packet_arp_hdr = (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     unsigned short opcode = ntohs(curr_packet_arp_hdr->ar_op);
     uint32_t arp_target_ip = curr_packet_arp_hdr->ar_tip;
-      /** break here and check endianness*/
+
     if (opcode == arp_op_request){
       /*ARP Request, need to create a reply and send packet*/
       if (arp_target_ip == input_interface->ip){
