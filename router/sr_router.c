@@ -32,15 +32,6 @@ void sr_init(struct sr_instance* sr)
     pthread_t thread;
 
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
-        
-    struct sr_rt* next_node = sr->routing_table;
-    while (next_node != NULL){
-      /* TODO: Note: necessary to queue at beginning? */
-      /*struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), next_node->dest.s_addr, empty_packet, 0, next_node->interface);*/
-      /*TODO: Figure out what to do with the req*/
-      /* Current theory: freeing occurs after ICMP or reply is received*/
-      next_node = next_node->next;
-    }
 } /* -- sr_init -- */
 
 /* 
@@ -65,7 +56,6 @@ struct in_addr * sr_lpm(struct sr_instance * sr,uint32_t ip_dst){
   struct sr_rt * curr_rt = sr->routing_table;
   uint32_t masked=0;
   while (curr_rt != NULL){
-    /* unsigned long long dest_binary = S_to_binary_((const char *)&(curr_rt->dest.s_addr));*/
     masked = curr_rt->mask.s_addr & curr_rt->dest.s_addr;
     if (masked == ip_dst){
       return &(curr_rt->dest);
@@ -116,11 +106,6 @@ void sr_handlepacket(struct sr_instance* sr,
   assert(interface);
 
   printf("*** -> Received packet of length %d \n",len);
-
-  /* TODO: Convert from network byte order to host byte order */
-  /* TODO: Checksums! Use cksum in sr_utils.c to compare to buf's checksum. Remember to set checksum field to zero 
-  before passing the buf to cksum*/
-
   /*
   Cases: 
   1. IP Packet
@@ -155,7 +140,6 @@ void sr_handlepacket(struct sr_instance* sr,
       /*ARP Request, need to create a reply and send packet*/
       if (arp_target_ip == input_interface->ip){
         /*This request is for us, send a reply*/
-         /* printf("INCOMING ARP REQUEST PACKET FOR US!\n");*/
          /* Set up ethernet header */
           struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
           memcpy(ethernet_hdr->ether_dhost, curr_packet_arp_hdr->ar_sha, sizeof(curr_packet_arp_hdr->ar_sha));
@@ -178,9 +162,8 @@ void sr_handlepacket(struct sr_instance* sr,
           memcpy(buf, ethernet_hdr, sizeof(*ethernet_hdr));
           memcpy(buf + sizeof(*ethernet_hdr), arp_hdr, sizeof(*arp_hdr));
           
-          /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
           sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr), input_interface->name);
-          /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
+
           /* Free memory */
           free(ethernet_hdr);
           free(arp_hdr);
@@ -197,18 +180,15 @@ void sr_handlepacket(struct sr_instance* sr,
       
       struct sr_if* input_interface = sr_get_interface(sr, interface);
       if (arp_target_ip == input_interface->ip){
-        /*printf("INCOMING ARP REPLY PACKET FOR US!\n");*/
         /*This reply is for us, insert into cache*/
         struct sr_arpreq * arpreq_for_currip = sr_arpcache_insert(&(sr->cache), curr_packet_arp_hdr->ar_sha, curr_packet_arp_hdr->ar_sip);
         if (arpreq_for_currip){
-          /*TODO: Send all packets that were queues on the req and destroy req*/
           struct sr_packet* curr_packet = arpreq_for_currip->packets;
           struct sr_arpentry* cache_entry = sr_arpcache_lookup(&(sr->cache), arpreq_for_currip->ip);
           if (!cache_entry){
             printf("No cache entry for request that was supposed to have just been inserted");
           }
           while (curr_packet != NULL){
-            /*printf("SENDING PACKET FROM REQ QUEUE!\n");*/
             /*Need to change the MAC address on the packet before sending*/
             curr_packet_eth_hdr = (struct sr_ethernet_hdr*) curr_packet->buf;
             struct sr_if* output_interface = sr_get_interface(sr, curr_packet->iface);
@@ -239,7 +219,6 @@ void sr_handlepacket(struct sr_instance* sr,
   /*-----------------------------------------IP/ICMP PACKET HANDLING----------------------------------*/
   else if (ether_type == ethertype_ip){
     /*Incoming packet is an IP packet*/
-    /*printf("INCOMING IP PACKET!\n");*/
     struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (packet + sizeof(struct sr_ethernet_hdr));
     /*Checksum first, then check if ICMP or not. Checksum again for ICMP packets*/
     if (curr_packet_ip_hdr->ip_ttl == 0){
@@ -260,9 +239,8 @@ void sr_handlepacket(struct sr_instance* sr,
     
     if (curr_packet_ip_hdr->ip_ttl == 1 && !is_icmp_echo_for_router &&
     ((dest_is_router_interface==0 && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) || (curr_packet_ip_hdr->ip_p!=6 && curr_packet_ip_hdr->ip_p!=17))){
-      /*TODO: Need to send a ICMP Time exceed type 11*/
+      /*Need to send a ICMP Time exceed type 11*/
         /* Set up ethernet header */
-        /*curr_packet_ip_hdr->ip_ttl--;*/
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
         
         struct sr_if* new_source = sr_get_interface(sr, interface);
@@ -314,9 +292,6 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          /*printf("Adding an ARP request to ");
-          print_addr_ip_int(ip_hdr->ip_dst);
-          printf("\n");*/
           sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
@@ -344,14 +319,7 @@ void sr_handlepacket(struct sr_instance* sr,
       curr_packet_ip_hdr->ip_sum = cksum(curr_packet_ip_hdr, curr_packet_ip_hdr->ip_hl * 4);
 
       /*Check if ICMP Echo request for us (is it for one of the router interfaces), checksum the ICMP header and send a reply*/
-      /*int dest_is_router_interface = 0;
-      struct sr_if * current_router_interface = sr->if_list;
-      while (current_router_interface != NULL){
-        if (current_router_interface->ip == curr_packet_ip_hdr->ip_dst){
-          dest_is_router_interface = 1;
-        }
-        current_router_interface = current_router_interface->next;
-      }*/
+
       if (curr_packet_ip_hdr->ip_p == ip_protocol_icmp && dest_is_router_interface==1/*&& curr_packet_ip_hdr->ip_dst == input_interface->ip*/){
         /*Incoming ICMP request destined for the router*/
         /*Checksum the ICMP and check that the request is an echo request*/
@@ -363,8 +331,8 @@ void sr_handlepacket(struct sr_instance* sr,
           /*Checksum failed, return early and drop packet*/
           return;
         }
-        /*Check if reply destination in ARP cache, otherwise set up ARP request and store packet*/
         
+        /*Check if reply destination in ARP cache, otherwise set up ARP request and store packet*/
         /*Send the echo reply*/
 
         struct sr_if* new_source = sr_get_interface(sr, interface);
@@ -384,14 +352,10 @@ void sr_handlepacket(struct sr_instance* sr,
 
         /*END Echo reply construction*/
 
-        /* free(matching_entry);*/
         /*check arp cache for mac address for dest. ip, if it's not there, send arp request and add this packet to req's packet list*/
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), curr_packet_ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          /*printf("Adding an ARP request to ");
-          print_addr_ip_int(curr_packet_ip_hdr->ip_dst);
-          printf("\n");*/
           sr_arpcache_queuereq(&(sr->cache), curr_packet_ip_hdr->ip_dst, packet, len, interface);
           return;
         }
@@ -403,8 +367,8 @@ void sr_handlepacket(struct sr_instance* sr,
       /*END ECHO REPLY CONSTRUCTION*/
 
       /*ICMP TYPE 3 CODE 3 CONSTRUCTION*/
-      else if (/*curr_packet_ip_hdr->ip_dst == input_interface->ip*/ dest_is_router_interface==1 && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) {
-        /*TODO: TCP/UDP addressed to us, we need to send ICMP type 3 code 3*/
+      else if (dest_is_router_interface==1 && (curr_packet_ip_hdr->ip_p == 6 || curr_packet_ip_hdr->ip_p == 17)) {
+        /*TCP/UDP addressed to us, we need to send ICMP type 3 code 3*/
 
         /* Set up ethernet header */
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
@@ -456,9 +420,6 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          /*printf("Adding an ARP request to ");
-          print_addr_ip_int(ip_hdr->ip_dst);
-          printf("\n");*/
           sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
@@ -486,7 +447,6 @@ void sr_handlepacket(struct sr_instance* sr,
       if (!best_match){
         /*No best match, need to send destination host unreachable ICMP type 3 code 0*/
         /* Set up ethernet header */
-        /*curr_packet_ip_hdr->ip_ttl--;*/
         struct sr_ethernet_hdr* ethernet_hdr = malloc(sizeof(struct sr_ethernet_hdr));
         struct sr_if* new_source = sr_get_interface(sr, interface);
 
@@ -537,9 +497,6 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpentry * matching_entry = sr_arpcache_lookup(&(sr->cache), ip_hdr->ip_dst);
         if (!matching_entry){
           /*No matching ARP entry, need to add a request and queue the packet*/
-          /*printf("Adding an ARP request to ");
-          print_addr_ip_int(ip_hdr->ip_dst);
-          printf("\n");*/
           sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, buf, sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr), interface);
            /* Free memory */
           free(ethernet_hdr);
@@ -562,9 +519,6 @@ void sr_handlepacket(struct sr_instance* sr,
       struct sr_if * outgoing_interface = get_if_list_for_rt_ip(sr,best_match->s_addr);
       if (!matching_entry){
         /*No matching ARP entry, need to add a request and queue the packet*/
-        /*printf("Adding an ARP request to ");
-        print_addr_ip(*best_match);
-        printf("\n");*/
         sr_arpcache_queuereq(&(sr->cache), best_match->s_addr, packet, len, outgoing_interface->name);
         return;
       }

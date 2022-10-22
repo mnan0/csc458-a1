@@ -37,14 +37,12 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             /*Loop through each packet in req and send an icmp type 3 code 1*/
             struct sr_packet* curr_packet = req->packets;
             while (curr_packet != NULL){
-                /*TODO: Test the if functionality*/
       
                 /*Unpack packet buf to get dhost from ethernet frame*/
                 struct sr_ethernet_hdr* curr_packet_eth_hdr = (struct sr_ethernet_hdr*) (curr_packet->buf);
                 struct sr_ip_hdr* curr_packet_ip_hdr = (struct sr_ip_hdr*) (curr_packet->buf + sizeof(struct sr_ethernet_hdr));
                 
                 /*Destination of the existing hdr should be the new source interface mac*/
-                /*struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);*/
                 struct sr_if* outgoing_if = get_if_list_for_rt_ip(sr, curr_packet_ip_hdr->ip_src);
                 
                 if (!outgoing_if){
@@ -68,7 +66,7 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
                 ip_hdr->ip_p = ip_protocol_icmp;
                 ip_hdr->ip_hl = sizeof(struct sr_ip_hdr) / 4;
                 ip_hdr->ip_v = 4;   
-                /*memcpy(&(ip_hdr->ip_src), &(curr_packet_ip_hdr->ip_dst), sizeof(curr_packet_ip_hdr->ip_dst));*/
+
                 memcpy(&(ip_hdr->ip_src), &(outgoing_if->ip), sizeof(outgoing_if->ip));
                 memcpy(&(ip_hdr->ip_dst), &(curr_packet_ip_hdr->ip_src), sizeof(curr_packet_ip_hdr->ip_src)); 
                 ip_hdr->ip_sum=0;
@@ -105,8 +103,6 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
         }
         else {
             /*Loop through all router interfaces and send an ARP request to each*/
-            /*struct sr_if *curr_if = sr->if_list;*/
-            /*struct in_addr * closest_ip = sr_lpm(sr,req->ip);*/
 
             /*This should exist bc this won't run if packets aren't waiting*/
             struct sr_if * dest_interface = sr_get_interface(sr, req->packets->iface);
@@ -130,7 +126,6 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             arp_hdr->ar_pln = sizeof(dest_interface->ip);
             arp_hdr->ar_op = htons(arp_op_request);
             memcpy(arp_hdr->ar_sha,dest_interface->addr,sizeof(dest_interface->addr));
-            /*arp_hdr.ar_tha = NULL;*/
             memcpy(&(arp_hdr->ar_sip),&(dest_interface->ip),sizeof(uint32_t));
             memcpy(&(arp_hdr->ar_tip),&(req->ip),sizeof(uint32_t));
             
@@ -139,7 +134,6 @@ void handle_arprequest(struct sr_instance *sr, struct sr_arpreq *req) {
             memcpy(buf + sizeof(struct sr_ethernet_hdr), arp_hdr, sizeof(struct sr_arp_hdr));
             
 
-            /*print_hdrs(buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr));*/
             sr_send_packet(sr, buf, sizeof(struct sr_arp_hdr) + sizeof(struct sr_ethernet_hdr),dest_interface->name);
 
             /* Free memory */
